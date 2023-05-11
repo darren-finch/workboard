@@ -1,0 +1,23 @@
+@import "_overrides.scss";
+
+html,
+body,
+#root {
+	height: 100vh;
+	overflow: hidden;
+}
+
+.sidebar {
+	transition: all 0.3s ease-in-out;
+	right: -100%;
+
+	&--open {
+		right: 0;
+	}
+}
+
+.icon-btn {
+	padding: $spacer * 0.5;
+	background: none;
+	border: none;
+}
