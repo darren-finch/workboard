@@ -1,10 +1,12 @@
 import { useContext, useState } from "react"
+import { DragDropContext, Draggable, Droppable } from "react-beautiful-dnd"
 import { Col, Container, Row } from "react-bootstrap"
 import { v4 as uuid } from "uuid"
-import Task from "../models/Task"
-import { DragDropContext, Draggable, Droppable } from "react-beautiful-dnd"
-import { ScreenSize } from "../hooks/ScreenSize"
 import { ScreenSizeContext } from "../context/ScreenSizeContext"
+import { ScreenSize } from "../hooks/ScreenSize"
+import ContextButton from "../components/ContextButton"
+import NiceModal from "@ebay/nice-modal-react"
+import EditTaskModal from "./modals/EditTaskModal"
 
 const taskColumnsFromBackend = {
 	[uuid()]: {
@@ -95,7 +97,7 @@ const BoardView = () => {
 	}
 
 	return (
-		<Container fluid className="d-flex flex-column bg-dark text-white py-2" style={{ height: "calc(100% - 57px)" }}>
+		<Container fluid className="d-flex flex-column bg-dark text-white py-2" style={{ height: "100%" }}>
 			<Row className="mt-2">
 				<Col className="d-flex align-items-center justify-content-start">
 					<h2>Board Name</h2>
@@ -104,10 +106,21 @@ const BoardView = () => {
 					<button className="icon-btn text-white bi bi-search" />
 					<button className="icon-btn text-white bi bi-pencil-fill fs-6" />
 					<button className="icon-btn text-white bi bi-funnel" />
+					<button className="icon-btn text-white bi bi-plus-lg" />
+					<ContextButton
+						onSelect={(optionKey) => {
+							console.log(optionKey)
+						}}
+						options={[
+							{ key: "option1", label: "option1" },
+							{ key: "option2", label: "option2" },
+							{ key: "option3", label: "option3" },
+						]}
+					/>
 				</Col>
 			</Row>
 			<DragDropContext onDragEnd={handleDragEnd}>
-				<div className="d-flex flex-row flex-grow-1 overflow-scroll">
+				<div className="d-flex flex-row flex-grow-1 overflow-scroll task-columns-container">
 					{Object.entries(taskColumns).map(([colId, col], colIndex) => (
 						<div
 							key={colId}
@@ -121,10 +134,12 @@ const BoardView = () => {
 							}}>
 							<div className="w-100 d-flex align-items-center justify-content-between">
 								<h3>{col.name}</h3>
-								<button
-									className="text-white bi bi-three-dots-vertical p-0 ps-2"
-									style={{ background: "none", border: "none" }}
-								/>
+								<div className="d-flex align-items-center">
+									<button className="icon-btn text-white bi bi-pencil-fill fs-6" />
+									<button className="btn btn-primary">
+										<i className="bi bi-plus-lg" />
+									</button>
+								</div>
 							</div>
 
 							<Droppable key={colId} droppableId={colId}>
@@ -132,10 +147,10 @@ const BoardView = () => {
 									<div
 										{...provided.droppableProps}
 										ref={provided.innerRef}
-										className={`flex-grow-1 ${snapshot.isDraggingOver ? "bg-light" : ""}`}
+										className={`flex-grow-1 ${snapshot.isDraggingOver ? "bg-secondary" : ""}`}
 										style={{
-											background: snapshot.isDraggingOver ? "lightblue" : "inherit",
 											height: "fit-content",
+											boxSizing: "border-box",
 										}}>
 										{col.tasks.map((task, taskIndex) => (
 											<Draggable key={task.id} draggableId={task.id} index={taskIndex}>
@@ -144,11 +159,28 @@ const BoardView = () => {
 														ref={provided.innerRef}
 														{...provided.draggableProps}
 														{...provided.dragHandleProps}
-														className={`task-card my-2 border border-secondary p-2 rounded ${
-															snapshot.isDragging ? "bg-secondary" : "bg-dark shadow-sm"
+														className={`task-card my-2 border p-2 bg-dark rounded ${
+															snapshot.isDragging
+																? "border-primary"
+																: "border-secondary shadow-sm"
 														}`}
 														style={{ ...provided.draggableProps.style }}>
-														<h3>{task.title}</h3>
+														<div className="d-flex align-items-top justify-content-between">
+															<h3>{task.title}</h3>
+															<div className="d-flex align-items-center">
+																<button
+																	className="icon-btn text-white bi bi-pencil-fill fs-6"
+																	onClick={() => {
+																		NiceModal.show(EditTaskModal)
+																	}}
+																/>
+																<button className="icon-btn text-white bi bi-trash-fill" />
+																<ContextButton
+																	options={[{ key: "misc", label: "Misc" }]}
+																	onSelect={(optionKey) => console.log(optionKey)}
+																/>
+															</div>
+														</div>
 														<p>{task.description}</p>
 														<div className="d-flex flex-wrap gap-2">
 															{task.tags.map((tag) => (
@@ -169,9 +201,9 @@ const BoardView = () => {
 					))}
 				</div>
 			</DragDropContext>
-			<div className="d-flex align-items-center justify-content-end">
+			{/* <div className="mt-2 d-flex align-items-center justify-content-end">
 				<button className="btn btn-primary">Add Column</button>
-			</div>
+			</div> */}
 		</Container>
 	)
 }

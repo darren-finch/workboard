@@ -4,6 +4,7 @@ import Sidebar from "./components/Sidebar"
 import BoardView from "./layouts/BoardView"
 import { ScreenSizeContext } from "./context/ScreenSizeContext"
 import { useScreenSize } from "./hooks/ScreenSize"
+import NiceModal from "@ebay/nice-modal-react"
 
 const App = () => {
 	const screenSize = useScreenSize()
@@ -11,11 +12,13 @@ const App = () => {
 
 	return (
 		<ScreenSizeContext.Provider value={screenSize}>
-			<div className="d-flex flex-column" style={{ height: "100vh" }}>
-				<Sidebar visible={sidebarVisible} onHide={() => setSidebarVisible(false)} />
-				<NavBar onSidebarToggle={() => setSidebarVisible(!sidebarVisible)} />
-				<BoardView />
-			</div>
+			<NiceModal.Provider>
+				<div className="d-flex flex-column overflow-hidden" style={{ height: "100vh" }}>
+					<Sidebar visible={sidebarVisible} onHide={() => setSidebarVisible(false)} />
+					<NavBar onSidebarToggle={() => setSidebarVisible(!sidebarVisible)} />
+					<BoardView />
+				</div>
+			</NiceModal.Provider>
 		</ScreenSizeContext.Provider>
 	)
 }
