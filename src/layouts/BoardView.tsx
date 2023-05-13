@@ -81,8 +81,8 @@ const BoardView = () => {
 			sourceColumn.tasks = sourceTasks
 			destColumn.tasks = destTasks
 
-			columnRepository.updateColumn(sourceColumn)
-			columnRepository.updateColumn(destColumn)
+			columnRepository.updateColumn(sourceColumn, true)
+			columnRepository.updateColumn(destColumn, true)
 		} else {
 			// Dropping into the same column
 
@@ -94,7 +94,7 @@ const BoardView = () => {
 
 			column.tasks = copiedTasks
 
-			columnRepository.updateColumn(column)
+			columnRepository.updateColumn(column, true)
 		}
 	}
 
@@ -108,7 +108,10 @@ const BoardView = () => {
 					<button className="icon-btn text-white bi bi-search" />
 					<button className="icon-btn text-white bi bi-pencil-fill fs-6" />
 					<button className="icon-btn text-white bi bi-funnel" />
-					<button className="icon-btn text-white bi bi-plus-lg" />
+					<button
+						className="icon-btn text-white bi bi-plus-lg"
+						onClick={() => NiceModal.show("edit-column-modal", { boardId: boardId })}
+					/>
 					<ContextButton
 						onSelect={(optionKey) => {
 							console.log(optionKey)
@@ -137,7 +140,16 @@ const BoardView = () => {
 							<div className="w-100 d-flex align-items-center justify-content-between">
 								<h3>{col.name}</h3>
 								<div className="d-flex align-items-center">
-									<button className="icon-btn text-white bi bi-pencil-fill fs-6" />
+									<button
+										className="icon-btn text-white bi bi-pencil-fill fs-6"
+										onClick={() =>
+											NiceModal.show("edit-column-modal", { column: col, boardId: boardId })
+										}
+									/>
+									<button
+										className="icon-btn text-white bi bi-trash-fill fs-6"
+										onClick={() => columnRepository.deleteColumn(col)}
+									/>
 									<button
 										className="btn btn-primary"
 										onClick={() => {

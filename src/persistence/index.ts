@@ -114,7 +114,7 @@ export class ColumnRepository {
 		}
 	}
 
-	async updateColumn(column: Column): Promise<RepositoryResponse<void>> {
+	async updateColumn(column: Column, updateTasks: boolean = false): Promise<RepositoryResponse<void>> {
 		let updatedColumn = false
 
 		boards.forEach((board) => {
@@ -123,9 +123,11 @@ export class ColumnRepository {
 					if (c.id === column.id) {
 						c.name = column.name
 
-						// This is the only place where we update the tasks of a column all at once
-						// This will be useful for drag and drop
-						c.tasks = column.tasks
+						if (updateTasks) {
+							// This is the only place where we update the tasks of a column all at once
+							// This will be useful for drag and drop
+							c.tasks = column.tasks
+						}
 
 						updatedColumn = true
 						boardRepositoryListeners.forEach((l) => l.onBoardUpdated(board))
@@ -141,15 +143,18 @@ export class ColumnRepository {
 		}
 	}
 
-	async deleteColumn(id: string): Promise<RepositoryResponse<void>> {
+	async deleteColumn(column: Column): Promise<RepositoryResponse<void>> {
 		let deletedColumn = false
 
 		boards.forEach((board) => {
-			board.columns.splice(
-				board.columns.findIndex((c) => c.id === id),
-				1
-			)
-			deletedColumn = true
+			if (board.id === column.boardId) {
+				board.columns.splice(
+					board.columns.findIndex((c) => c.id === column.id),
+					1
+				)
+				deletedColumn = true
+				boardRepositoryListeners.forEach((l) => l.onBoardUpdated(board))
+			}
 		})
 
 		return {

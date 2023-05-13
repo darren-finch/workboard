@@ -88,7 +88,7 @@ const EditTaskModal = NiceModal.create<NiceModalHocProps>(() => {
 									required
 								/>
 								<Form.Control.Feedback type="invalid">
-									Please enter a {field.name}
+									{field.printName} is required
 								</Form.Control.Feedback>
 							</Form.Group>
 						)
@@ -129,7 +129,7 @@ const EditTaskModal = NiceModal.create<NiceModalHocProps>(() => {
 				<Button variant="secondary" onClick={handleHide}>
 					Close
 				</Button>
-				<Button variant="primary" type="submit" onClick={() => formRef.current.requestSubmit()}>
+				<Button variant="primary" type="submit" onClick={() => formRef.current!.requestSubmit()}>
 					Save
 				</Button>
 			</Modal.Footer>
