@@ -1,13 +1,10 @@
-import { useState } from "react"
-import { Navbar, Nav, Dropdown } from "react-bootstrap"
+import { Dropdown, Navbar } from "react-bootstrap"
 
 interface NavBarProps {
 	onSidebarToggle: () => void
 }
 
 const GlobalNavbar: React.FC<NavBarProps> = ({ onSidebarToggle }) => {
-	const [boardDropdownVisible, setBoardDropdownVisible] = useState(false)
-
 	return (
 		<Navbar
 			bg="dark"

@@ -5,6 +5,7 @@ import BoardView from "./layouts/BoardView"
 import { ScreenSizeContext } from "./context/ScreenSizeContext"
 import { useScreenSize } from "./hooks/ScreenSize"
 import NiceModal from "@ebay/nice-modal-react"
+import { Offcanvas } from "react-bootstrap"
 
 const App = () => {
 	const screenSize = useScreenSize()

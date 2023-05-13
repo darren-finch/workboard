@@ -32,7 +32,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onDragStart, onDragEnd }) => 
 			draggable
 			onDragStart={handleDragStart}
 			onDragEnd={handleDragEnd}>
-			<h3>{task.title}</h3>
+			<h3>{task.name}</h3>
 			<p>{task.description}</p>
 			<div className="d-flex flex-wrap gap-2">
 				{task.tags.map((tag) => (

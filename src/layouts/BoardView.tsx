@@ -1,4 +1,4 @@
-import { useContext, useState } from "react"
+import { useContext, useEffect, useState } from "react"
 import { DragDropContext, Draggable, Droppable } from "react-beautiful-dnd"
 import { Col, Container, Row } from "react-bootstrap"
 import { v4 as uuid } from "uuid"
@@ -7,48 +7,60 @@ import { ScreenSize } from "../hooks/ScreenSize"
 import ContextButton from "../components/ContextButton"
 import NiceModal from "@ebay/nice-modal-react"
 import EditTaskModal from "./modals/EditTaskModal"
+import { boardRepository, columnRepository, taskRepository } from "../persistence"
+import Board from "../models/Board"
+import Column from "../models/Column"
+import Task from "../models/Task"
 
-const taskColumnsFromBackend = {
-	[uuid()]: {
-		name: "Todo",
-		tasks: [
-			{
-				id: uuid(),
-				title: "Task 1",
-				description: "This is a description",
-				tags: ["tag1", "tag2"],
-			},
-			{
-				id: uuid(),
-				title: "Task 2",
-				description: "This is another description",
-				tags: ["tag1"],
-			},
+const boardId = uuid()
+const col1Id = uuid()
+const col2Id = uuid()
+const task1Id = uuid()
+const task2Id = uuid()
+const task3Id = uuid()
+const task4Id = uuid()
+
+const testBoard = new Board(boardId, "Test Board", [
+	new Column(
+		col1Id,
+		"Todo",
+		[
+			new Task(task1Id, "Task 1", "This is a description", ["tag1", "tag2"], col1Id),
+			new Task(task2Id, "Task 2", "This is another description", ["tag1"], col1Id),
 		],
-	},
-	[uuid()]: {
-		name: "Todo 2",
-		tasks: [
-			{
-				id: uuid(),
-				title: "Task 3",
-				description: "This is a description",
-				tags: ["tag1", "tag2"],
-			},
-			{
-				id: uuid(),
-				title: "Task 4",
-				description: "This is another description",
-				tags: ["tag1"],
-			},
+		boardId
+	),
+	new Column(
+		col2Id,
+		"Todo 2",
+		[
+			new Task(task3Id, "Task 3", "This is a description", ["tag1", "tag2"], col2Id),
+			new Task(task4Id, "Task 4", "This is another description", ["tag1"], col2Id),
 		],
-	},
-}
+		boardId
+	),
+])
+
+boardRepository.createBoard(testBoard)
 
 const BoardView = () => {
 	const screenSize = useContext(ScreenSizeContext)
 
-	const [taskColumns, setTaskColumns] = useState(taskColumnsFromBackend)
+	const [taskColumns, setTaskColumns] = useState({
+		[col1Id]: testBoard.columns[0],
+		[col2Id]: testBoard.columns[1],
+	})
+
+	useEffect(() => {
+		return boardRepository.onBoardUpdated((board) => {
+			setTaskColumns(
+				board.columns.reduce((acc: any, column) => {
+					acc[column.id] = column
+					return acc
+				}, {})
+			)
+		})
+	}, [])
 
 	const handleDragEnd = (result: any) => {
 		// Dropping into a different column
@@ -66,17 +78,11 @@ const BoardView = () => {
 			const [removed] = sourceTasks.splice(source.index, 1)
 			destTasks.splice(destination.index, 0, removed)
 
-			setTaskColumns({
-				...taskColumns,
-				[source.droppableId]: {
-					...sourceColumn,
-					tasks: sourceTasks,
-				},
-				[destination.droppableId]: {
-					...destColumn,
-					tasks: destTasks,
-				},
-			})
+			sourceColumn.tasks = sourceTasks
+			destColumn.tasks = destTasks
+
+			columnRepository.updateColumn(sourceColumn)
+			columnRepository.updateColumn(destColumn)
 		} else {
 			// Dropping into the same column
 
@@ -86,13 +92,9 @@ const BoardView = () => {
 			const [removed] = copiedTasks.splice(source.index, 1)
 			copiedTasks.splice(destination.index, 0, removed)
 
-			setTaskColumns({
-				...taskColumns,
-				[source.droppableId]: {
-					...column,
-					tasks: copiedTasks,
-				},
-			})
+			column.tasks = copiedTasks
+
+			columnRepository.updateColumn(column)
 		}
 	}
 
@@ -136,7 +138,11 @@ const BoardView = () => {
 								<h3>{col.name}</h3>
 								<div className="d-flex align-items-center">
 									<button className="icon-btn text-white bi bi-pencil-fill fs-6" />
-									<button className="btn btn-primary">
+									<button
+										className="btn btn-primary"
+										onClick={() => {
+											NiceModal.show("edit-task-modal", { columnId: colId })
+										}}>
 										<i className="bi bi-plus-lg" />
 									</button>
 								</div>
@@ -152,8 +158,8 @@ const BoardView = () => {
 											height: "fit-content",
 											boxSizing: "border-box",
 										}}>
-										{col.tasks.map((task, taskIndex) => (
-											<Draggable key={task.id} draggableId={task.id} index={taskIndex}>
+										{col.tasks.map((curTask, taskIndex) => (
+											<Draggable key={curTask.id} draggableId={curTask.id} index={taskIndex}>
 												{(provided, snapshot) => (
 													<div
 														ref={provided.innerRef}
@@ -166,24 +172,30 @@ const BoardView = () => {
 														}`}
 														style={{ ...provided.draggableProps.style }}>
 														<div className="d-flex align-items-top justify-content-between">
-															<h3>{task.title}</h3>
+															<h3>{curTask.name}</h3>
 															<div className="d-flex align-items-center">
 																<button
 																	className="icon-btn text-white bi bi-pencil-fill fs-6"
 																	onClick={() => {
-																		NiceModal.show(EditTaskModal)
+																		NiceModal.show("edit-task-modal", {
+																			task: curTask,
+																			columnId: colId,
+																		})
 																	}}
 																/>
-																<button className="icon-btn text-white bi bi-trash-fill" />
+																<button
+																	className="icon-btn text-white bi bi-trash-fill"
+																	onClick={() => taskRepository.deleteTask(curTask)}
+																/>
 																<ContextButton
 																	options={[{ key: "misc", label: "Misc" }]}
 																	onSelect={(optionKey) => console.log(optionKey)}
 																/>
 															</div>
 														</div>
-														<p>{task.description}</p>
+														<p>{curTask.description}</p>
 														<div className="d-flex flex-wrap gap-2">
-															{task.tags.map((tag) => (
+															{curTask.tags.map((tag) => (
 																<span key={tag} className="badge bg-secondary">
 																	{tag}
 																</span>
@@ -201,9 +213,6 @@ const BoardView = () => {
 					))}
 				</div>
 			</DragDropContext>
-			{/* <div className="mt-2 d-flex align-items-center justify-content-end">
-				<button className="btn btn-primary">Add Column</button>
-			</div> */}
 		</Container>
 	)
 }
