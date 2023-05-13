@@ -166,10 +166,18 @@ export class ColumnRepository {
 }
 
 export class BoardRepository {
-	onBoardUpdated(listener: (board: Board) => void): () => void {
+	onBoardUpdated(boardId: string, listener: (board: Board) => void): () => void {
 		boardRepositoryListeners.push({
 			onBoardUpdated: listener,
 		})
+
+		// Call the listener with the current board
+		const board = boards.find((b) => b.id === boardId)
+		if (board) {
+			listener(board)
+		} else {
+			throw new Error(`Board with id ${boardId} not found`)
+		}
 
 		return () => {
 			boardRepositoryListeners.splice(
@@ -179,8 +187,12 @@ export class BoardRepository {
 		}
 	}
 
-	async getBoard(boardId: string): Promise<RepositoryResponse<Board | undefined>> {
+	async getBoard(boardId: string, includeColumns: boolean = false): Promise<RepositoryResponse<Board | undefined>> {
 		const board = boards.find((b) => b.id === boardId)
+
+		if (!includeColumns && board) {
+			board.columns = []
+		}
 
 		return {
 			success: !!board,
