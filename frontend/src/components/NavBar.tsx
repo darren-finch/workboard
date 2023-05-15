@@ -34,14 +34,14 @@ const GlobalNavbar: React.FC<NavBarProps> = ({ onSidebarToggle }) => {
 
 						<Dropdown.Menu variant="dark">
 							{boards.map((board) => (
-								<Dropdown.Item key={board.id} onClick={() => navigate(`/board/${board.id}`)}>
+								<Dropdown.Item key={board.id} onClick={() => navigate(`/boards/${board.id}`)}>
 									{board.name}
 								</Dropdown.Item>
 							))}
 						</Dropdown.Menu>
 					</Dropdown>
 				)}
-				<Button variant="primary" onClick={() => navigate("board/add")}>
+				<Button variant="primary" onClick={() => navigate("/boards/add")}>
 					Add Board
 				</Button>
 			</div>

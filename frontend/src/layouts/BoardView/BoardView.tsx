@@ -20,7 +20,7 @@ const BoardView = () => {
 	const screenSize = useContext(ScreenSizeContext)
 
 	const { boardId } = useParams()
-	const [board, setBoard] = useState<Board>(new Board("", "", []))
+	const [board, setBoard] = useState<Board>(new Board(0, "", []))
 	const [error, setError] = useState<string>("")
 
 	const [dragAndDropTaskColumns, setDragAndDropTaskColumns] = useState<DragAndDropTaskColumns>({})
@@ -31,16 +31,25 @@ const BoardView = () => {
 			return
 		}
 
-		try {
-			return boardRepository.onBoardUpdated(boardId, (board) => {
-				setBoard(board)
+		const boardIdAsNumber = parseInt(boardId)
+		if (isNaN(boardIdAsNumber)) {
+			setError("Invalid board ID provided")
+			return
+		}
 
-				setDragAndDropTaskColumns(
-					board.columns.reduce((acc, column) => {
-						acc[column.id] = column
-						return acc
-					}, {} as DragAndDropTaskColumns)
-				)
+		try {
+			return boardRepository.onBoardUpdated({
+				boardId: boardIdAsNumber,
+				onBoardUpdated: (board) => {
+					setBoard(board)
+
+					// setDragAndDropTaskColumns(
+					// 	board.columns.reduce((acc, column) => {
+					// 		acc[column.id] = column
+					// 		return acc
+					// 	}, {} as DragAndDropTaskColumns)
+					// )
+				},
 			})
 		} catch (err: any) {
 			setError(err.message)
@@ -92,7 +101,7 @@ const BoardView = () => {
 							<h2>{board.name}</h2>
 							<button
 								className="icon-btn text-white bi bi-pencil-fill fs-6"
-								onClick={() => navigate(`/board/${boardId}/edit`)}
+								onClick={() => navigate(`/boards/${boardId}/edit`)}
 							/>
 							<button
 								className="icon-btn text-white bi bi-trash-fill fs-6"

@@ -11,9 +11,8 @@ import EditBoard from "./layouts/EditBoard"
 import { boardRepository } from "./persistence"
 import testBoard from "./persistence/seed"
 import NotFound from "./layouts/NotFound"
-import { v4 as uuid } from "uuid"
 
-boardRepository.addBoard(testBoard)
+// boardRepository.createBoard(testBoard)
 
 const App = () => {
 	const screenSize = useScreenSize()
@@ -28,9 +27,9 @@ const App = () => {
 						<NavBar onSidebarToggle={() => setSidebarVisible(!sidebarVisible)} />
 						<Routes>
 							<Route path="/" element={<Dashboard />} />
-							<Route path="/board/:boardId" element={<BoardView />} />
-							<Route path="/board/:boardId/edit" element={<EditBoard />} />
-							<Route path="/board/add" element={<EditBoard />} />
+							<Route path="/boards/:boardId" element={<BoardView />} />
+							<Route path="/boards/:boardId/edit" element={<EditBoard />} />
+							<Route path="/boards/add" element={<EditBoard />} />
 							<Route path="*" element={<NotFound />} />
 						</Routes>
 					</div>

@@ -13,7 +13,7 @@ const EditBoard = () => {
 	const { boardId } = useParams()
 	const isEditingExistingBoard = !!boardId
 
-	const [board, setBoard] = useState<Board>(new Board("", "", []))
+	const [board, setBoard] = useState<Board>(new Board(0, "", []))
 	const [error, setError] = useState<string>("")
 
 	const [fields, wasValidated, handleFormInputChange, handleFormSubmitted] = useFormFields(
@@ -46,15 +46,19 @@ const EditBoard = () => {
 	const saveBoard = async () => {
 		// Save or update the task
 		if (isEditingExistingBoard) {
-			await boardRepository.updateBoard(new Board(board.id, fields.name.value, board.columns))
-			navigate("/board/" + board.id)
-		} else {
-			const result = await boardRepository.addBoard(new Board("", fields.name.value, []))
+			const result = await boardRepository.updateBoard(new Board(board.id, fields.name.value, board.columns))
 			if (!result.success) {
 				setError(result.message)
 				return
 			}
-			navigate("/board/" + result.value)
+			navigate("/boards/" + board.id)
+		} else {
+			const result = await boardRepository.createBoard(new Board(0, fields.name.value, []))
+			if (!result.success) {
+				setError(result.message)
+				return
+			}
+			navigate("/boards/" + result.value)
 		}
 	}
 
