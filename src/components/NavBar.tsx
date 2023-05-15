@@ -1,28 +1,49 @@
-import { Dropdown, Navbar } from "react-bootstrap"
+import { useEffect, useState } from "react"
+import { Button, Dropdown, Navbar } from "react-bootstrap"
+import { useNavigate } from "react-router-dom"
+import { boardRepository } from "../persistence"
+import Board from "../models/Board"
 
 interface NavBarProps {
 	onSidebarToggle: () => void
 }
 
 const GlobalNavbar: React.FC<NavBarProps> = ({ onSidebarToggle }) => {
+	const navigate = useNavigate()
+
+	const [boards, setBoards] = useState<Board[]>([])
+
+	useEffect(() => {
+		boardRepository.onBoardsUpdated((boards) => {
+			setBoards(boards)
+		})
+	}, [])
+
 	return (
 		<Navbar
 			bg="dark"
 			expand="lg"
 			variant="dark"
 			className="p-2 align-items-center justify-content-between border-bottom border-secondary">
-			<Navbar.Brand>WorkBoard</Navbar.Brand>
+			<Navbar.Brand onClick={() => navigate("/")}>WorkBoard</Navbar.Brand>
 
-			<div className="d-none d-md-flex align-items-center">
-				<Dropdown>
-					<Dropdown.Toggle variant="dark">Boards</Dropdown.Toggle>
+			<div className="d-none d-md-flex align-items-center gap-2">
+				{boards.length > 0 && (
+					<Dropdown>
+						<Dropdown.Toggle variant="dark">Boards</Dropdown.Toggle>
 
-					<Dropdown.Menu variant="dark">
-						<Dropdown.Item href="#/action-1">Action</Dropdown.Item>
-						<Dropdown.Item href="#/action-2">Another action</Dropdown.Item>
-						<Dropdown.Item href="#/action-3">Something else</Dropdown.Item>
-					</Dropdown.Menu>
-				</Dropdown>
+						<Dropdown.Menu variant="dark">
+							{boards.map((board) => (
+								<Dropdown.Item key={board.id} onClick={() => navigate(`/board/${board.id}`)}>
+									{board.name}
+								</Dropdown.Item>
+							))}
+						</Dropdown.Menu>
+					</Dropdown>
+				)}
+				<Button variant="primary" onClick={() => navigate("board/add")}>
+					Add Board
+				</Button>
 			</div>
 
 			<div className="d-flex align-items-center">

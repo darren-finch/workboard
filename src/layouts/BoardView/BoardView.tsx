@@ -1,13 +1,13 @@
 import NiceModal from "@ebay/nice-modal-react"
 import { useContext, useEffect, useState } from "react"
 import { DragDropContext, Draggable, Droppable } from "react-beautiful-dnd"
-import { Col, Container, Row } from "react-bootstrap"
+import { Button, Col, Container, Row } from "react-bootstrap"
 import ContextButton from "../../components/ContextButton"
 import { ScreenSizeContext } from "../../context/ScreenSizeContext"
 import { ScreenSize } from "../../hooks/ScreenSize"
 import { boardRepository, columnRepository, taskRepository } from "../../persistence"
 import Column from "../../models/Column"
-import { useParams } from "react-router-dom"
+import { useNavigate, useParams } from "react-router-dom"
 import Board from "../../models/Board"
 
 interface DragAndDropTaskColumns {
@@ -15,6 +15,8 @@ interface DragAndDropTaskColumns {
 }
 
 const BoardView = () => {
+	const navigate = useNavigate()
+
 	const screenSize = useContext(ScreenSizeContext)
 
 	const { boardId } = useParams()
@@ -31,11 +33,6 @@ const BoardView = () => {
 
 		try {
 			return boardRepository.onBoardUpdated(boardId, (board) => {
-				if (!board) {
-					setError("There was an error loading the board")
-					return
-				}
-
 				setBoard(board)
 
 				setDragAndDropTaskColumns(
@@ -48,15 +45,14 @@ const BoardView = () => {
 		} catch (err: any) {
 			setError(err.message)
 		}
-	}, [])
+	}, [boardId])
 
 	const handleDragEnd = (result: any) => {
-		// Dropping into a different column
-
 		const { source, destination } = result
 		if (!destination) return
 
 		if (source.droppableId !== destination.droppableId) {
+			// Dropping into a different column
 			const sourceColumn = dragAndDropTaskColumns[source.droppableId]
 			const destColumn = dragAndDropTaskColumns[destination.droppableId]
 
@@ -64,6 +60,7 @@ const BoardView = () => {
 			const destTasks = [...destColumn.tasks]
 
 			const [removed] = sourceTasks.splice(source.index, 1)
+			removed.columnId = destColumn.id
 			destTasks.splice(destination.index, 0, removed)
 
 			sourceColumn.tasks = sourceTasks
@@ -73,7 +70,6 @@ const BoardView = () => {
 			columnRepository.updateColumn(destColumn, true)
 		} else {
 			// Dropping into the same column
-
 			const column = dragAndDropTaskColumns[source.droppableId]
 			const copiedTasks = [...column.tasks]
 
@@ -94,15 +90,31 @@ const BoardView = () => {
 					<Row className="mt-2">
 						<Col className="d-flex align-items-center justify-content-start">
 							<h2>{board.name}</h2>
+							<button
+								className="icon-btn text-white bi bi-pencil-fill fs-6"
+								onClick={() => navigate(`/board/${boardId}/edit`)}
+							/>
+							<button
+								className="icon-btn text-white bi bi-trash-fill fs-6"
+								onClick={() =>
+									NiceModal.show("confirmation-modal", {
+										body: "Are you sure you want to delete this board?",
+									}).then((result) => {
+										if (boardId) boardRepository.deleteBoard(boardId)
+										navigate("/")
+									})
+								}
+							/>
 						</Col>
 						<Col className="d-flex align-items-center justify-content-end">
+							<Button
+								variant="primary"
+								className="me-2"
+								onClick={() => NiceModal.show("edit-column-modal", { boardId: boardId })}>
+								Add Column
+							</Button>
 							<button className="icon-btn text-white bi bi-search" />
-							<button className="icon-btn text-white bi bi-pencil-fill fs-6" />
 							<button className="icon-btn text-white bi bi-funnel" />
-							<button
-								className="icon-btn text-white bi bi-plus-lg"
-								onClick={() => NiceModal.show("edit-column-modal", { boardId: boardId })}
-							/>
 							<ContextButton
 								onSelect={(optionKey) => {
 									console.log(optionKey)

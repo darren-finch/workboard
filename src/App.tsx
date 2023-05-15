@@ -1,17 +1,19 @@
-import { useEffect, useState } from "react"
+import NiceModal from "@ebay/nice-modal-react"
+import { useState } from "react"
+import { BrowserRouter, Route, Routes, useNavigate } from "react-router-dom"
 import NavBar from "./components/NavBar"
 import Sidebar from "./components/Sidebar"
-import BoardView from "./layouts/BoardView/BoardView"
 import { ScreenSizeContext } from "./context/ScreenSizeContext"
 import { useScreenSize } from "./hooks/ScreenSize"
-import NiceModal from "@ebay/nice-modal-react"
-import { Offcanvas } from "react-bootstrap"
-import { BrowserRouter, Route, Routes } from "react-router-dom"
+import BoardView from "./layouts/BoardView/BoardView"
 import Dashboard from "./layouts/Dashboard"
+import EditBoard from "./layouts/EditBoard"
 import { boardRepository } from "./persistence"
 import testBoard from "./persistence/seed"
+import NotFound from "./layouts/NotFound"
+import { v4 as uuid } from "uuid"
 
-boardRepository.createBoard(testBoard)
+boardRepository.addBoard(testBoard)
 
 const App = () => {
 	const screenSize = useScreenSize()
@@ -27,7 +29,9 @@ const App = () => {
 						<Routes>
 							<Route path="/" element={<Dashboard />} />
 							<Route path="/board/:boardId" element={<BoardView />} />
-							<Route path="*" element={<h1>404 Not Found</h1>} />
+							<Route path="/board/:boardId/edit" element={<EditBoard />} />
+							<Route path="/board/add" element={<EditBoard />} />
+							<Route path="*" element={<NotFound />} />
 						</Routes>
 					</div>
 				</BrowserRouter>

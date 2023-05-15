@@ -10,12 +10,21 @@ export interface RepositoryResponse<T> {
 	value: T
 }
 
-export interface BoardRepositoryListener {
-	onBoardUpdated(board: Board): void
+export interface BoardUpdatedListener {
+	(board: Board): void
+}
+
+export interface BoardsUpdatedListener {
+	(boards: Board[]): void
+}
+
+export interface Unsubscribe {
+	(): void
 }
 
 const boards: Board[] = []
-const boardRepositoryListeners: BoardRepositoryListener[] = []
+const boardUpdatedListeners: BoardUpdatedListener[] = []
+const boardsUpdatedListeners: BoardsUpdatedListener[] = []
 
 export class TaskRepository {
 	// Returns the id of the added task
@@ -31,7 +40,7 @@ export class TaskRepository {
 
 					column.tasks.push(task)
 					addedTask = true
-					boardRepositoryListeners.forEach((l) => l.onBoardUpdated(board))
+					notifyBoardUpdatedListeners(board)
 				}
 			})
 		})
@@ -54,7 +63,7 @@ export class TaskRepository {
 						t.description = task.description
 						t.tags = task.tags
 						updatedTask = true
-						boardRepositoryListeners.forEach((l) => l.onBoardUpdated(board))
+						notifyBoardUpdatedListeners(board)
 					}
 				})
 			})
@@ -78,7 +87,7 @@ export class TaskRepository {
 						1
 					)
 					deletedTask = true
-					boardRepositoryListeners.forEach((l) => l.onBoardUpdated(board))
+					notifyBoardUpdatedListeners(board)
 				}
 			})
 		})
@@ -103,7 +112,8 @@ export class ColumnRepository {
 
 				board.columns.push(column)
 				addColumn = true
-				boardRepositoryListeners.forEach((l) => l.onBoardUpdated(board))
+				notifyBoardUpdatedListeners(board)
+				notifyBoardsUpdatedListeners()
 			}
 		})
 
@@ -121,6 +131,8 @@ export class ColumnRepository {
 			if (board.id === column.boardId) {
 				board.columns.forEach((c) => {
 					if (c.id === column.id) {
+						const columnMetaDataChanged = c.name !== column.name
+
 						c.name = column.name
 
 						if (updateTasks) {
@@ -130,7 +142,12 @@ export class ColumnRepository {
 						}
 
 						updatedColumn = true
-						boardRepositoryListeners.forEach((l) => l.onBoardUpdated(board))
+
+						notifyBoardUpdatedListeners(board)
+
+						if (columnMetaDataChanged) {
+							notifyBoardsUpdatedListeners()
+						}
 					}
 				})
 			}
@@ -153,7 +170,8 @@ export class ColumnRepository {
 					1
 				)
 				deletedColumn = true
-				boardRepositoryListeners.forEach((l) => l.onBoardUpdated(board))
+				notifyBoardUpdatedListeners(board)
+				notifyBoardsUpdatedListeners()
 			}
 		})
 
@@ -165,23 +183,37 @@ export class ColumnRepository {
 	}
 }
 
+let boardIdCounter = 2
+
 export class BoardRepository {
-	onBoardUpdated(boardId: string, listener: (board: Board) => void): () => void {
-		boardRepositoryListeners.push({
-			onBoardUpdated: listener,
-		})
+	onBoardsUpdated(listener: BoardsUpdatedListener): Unsubscribe {
+		boardsUpdatedListeners.push(listener)
+
+		// Call the listener with the current boards
+		listener([...boards])
+
+		return () => {
+			boardsUpdatedListeners.splice(
+				boardsUpdatedListeners.findIndex((l) => l === listener),
+				1
+			)
+		}
+	}
+
+	onBoardUpdated(boardId: string, listener: BoardUpdatedListener): Unsubscribe {
+		boardUpdatedListeners.push(listener)
 
 		// Call the listener with the current board
 		const board = boards.find((b) => b.id === boardId)
 		if (board) {
-			listener(board)
+			listener({ ...board })
 		} else {
 			throw new Error(`Board with id ${boardId} not found`)
 		}
 
 		return () => {
-			boardRepositoryListeners.splice(
-				boardRepositoryListeners.findIndex((l) => l.onBoardUpdated === listener),
+			boardUpdatedListeners.splice(
+				boardUpdatedListeners.findIndex((l) => l === listener),
 				1
 			)
 		}
@@ -189,22 +221,27 @@ export class BoardRepository {
 
 	async getBoard(boardId: string, includeColumns: boolean = false): Promise<RepositoryResponse<Board | undefined>> {
 		const board = boards.find((b) => b.id === boardId)
+		const boardToReturn = board ? { ...board } : undefined
 
-		if (!includeColumns && board) {
-			board.columns = []
+		if (boardToReturn && !includeColumns) {
+			boardToReturn.columns = []
 		}
 
 		return {
-			success: !!board,
-			message: board ? "Board found" : "Board not found",
-			value: board,
+			success: !!boardToReturn,
+			message: boardToReturn ? "Board found" : "Board not found",
+			value: boardToReturn,
 		}
 	}
 
-	async createBoard(board: Board): Promise<RepositoryResponse<string>> {
-		if (!board.id) board.id = uuid()
+	async addBoard(board: Board): Promise<RepositoryResponse<string>> {
+		if (!board.id) {
+			board.id = boardIdCounter.toString()
+			boardIdCounter++
+		}
 
 		boards.push(board)
+		notifyBoardsUpdatedListeners()
 
 		return {
 			success: true,
@@ -216,7 +253,8 @@ export class BoardRepository {
 	async updateBoard(board: Board): Promise<RepositoryResponse<void>> {
 		const index = boards.findIndex((b) => b.id === board.id)
 		boards[index].name = board.name
-		boardRepositoryListeners.forEach((l) => l.onBoardUpdated(board))
+		notifyBoardUpdatedListeners(boards[index])
+		notifyBoardsUpdatedListeners()
 
 		return {
 			success: true,
@@ -231,12 +269,29 @@ export class BoardRepository {
 			1
 		)
 
+		notifyBoardsUpdatedListeners()
+
 		return {
 			success: true,
 			message: "Board deleted successfully",
 			value: undefined,
 		}
 	}
+}
+
+// When notifying the listeners, we need to make sure we are not passing the actual objects
+// but copies of them, otherwise the listeners could directly modify the objects in this mock data store.
+// When the application begins using a real database, this will not be necessary anymore.
+
+const notifyBoardUpdatedListeners = (board: Board) => {
+	boardUpdatedListeners.forEach((l) => l({ ...board }))
+}
+
+// This should only be called when meta data of the board changes, like the name
+// or the columns. When a task is added, updated or deleted, the boardUpdatedListeners
+// should be called instead.
+const notifyBoardsUpdatedListeners = () => {
+	boardsUpdatedListeners.forEach((l) => l([...boards]))
 }
 
 export const boardRepository = new BoardRepository()

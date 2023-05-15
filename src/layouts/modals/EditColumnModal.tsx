@@ -37,7 +37,7 @@ const EditColumnModal = NiceModal.create<NiceModalHocProps>(() => {
 	}
 
 	const saveColumn = async () => {
-		// Save or update the task
+		// Save or update the column
 		if (isEditingExistingColumn) {
 			columnRepository.updateColumn(new Column(column.id, fields.name.value, column.tasks, column.boardId))
 		} else {
