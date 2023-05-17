@@ -11,52 +11,30 @@ public class MockColumnRepository : IColumnRepository
         this.context = context;
     }
 
-    public ICollection<Column> GetAllColumns(bool includeTasks = false)
-    {
-        return context.Boards.Select(b => b.Columns).SelectMany(c => c).Select(c => new Column
-        {
-            Id = c.Id,
-            Name = c.Name,
-            Tasks = includeTasks ? c.Tasks : new List<Models.Task>(),
-            BoardId = c.BoardId
-        }).ToList();
-    }
-
     public Column? GetColumnById(long id, bool includeTasks = false)
     {
-        var column = GetAllColumns().FirstOrDefault(c => c.Id == id);
-        if (column == null)
-        {
-            return null;
-        }
-        return new Column
-        {
-            Id = column.Id,
-            Name = column.Name,
-            Tasks = includeTasks ? column.Tasks : new List<Models.Task>(),
-            BoardId = column.BoardId
-        };
+        var column = context.Boards.Select(b => b.Columns).SelectMany(c => c).FirstOrDefault(c => c.Id == id);
+        return column;
     }
 
-    public Column CreateColumn(Column column)
+    public long CreateColumn(Column column)
     {
-        var boardToUpdate = context.Boards.FirstOrDefault(b => b.Id == column.BoardId);
-        if (boardToUpdate == null)
+        var referencedBoard = context.Boards.FirstOrDefault(b => b.Id == column.BoardId);
+        if (referencedBoard == null)
         {
             throw new Exception($"Board with id {column.BoardId} not found.");
         }
 
         if (column.Id == 0)
         {
-            var allColumns = GetAllColumns();
-            column.Id = allColumns.Count > 0 ? allColumns.Max(c => c.Id) + 1 : 1;
+            column.Id = context.nextColumnId;
         }
 
-        boardToUpdate.Columns.Add(column);
-        return column;
+        referencedBoard.Columns.Add(column);
+        return referencedBoard.Id;
     }
 
-    public Column UpdateColumn(Column column)
+    public long UpdateColumn(Column column)
     {
         var referencedBoard = context.Boards.FirstOrDefault(b => b.Id == column.BoardId);
         if (referencedBoard == null)
@@ -72,25 +50,26 @@ public class MockColumnRepository : IColumnRepository
         }
 
         referencedColumn.Name = column.Name;
+        referencedColumn.Tasks = column.Tasks;
 
-        return referencedColumn;
+        return referencedColumn.BoardId;
     }
 
     public long DeleteColumn(long columnId)
     {
-        var boardToUpdate = context.Boards.FirstOrDefault(b => b.Columns.Where(c => c.Id == columnId).Count() > 0);
-        if (boardToUpdate == null)
+        var referencedBoard = context.Boards.FirstOrDefault(b => b.Columns.Where(c => c.Id == columnId).Count() > 0);
+        if (referencedBoard == null)
         {
             throw new Exception($"Board with column id {columnId} not found.");
         }
 
-        var columnToDelete = boardToUpdate.Columns.FirstOrDefault(c => c.Id == columnId);
+        var columnToDelete = referencedBoard.Columns.FirstOrDefault(c => c.Id == columnId);
         if (columnToDelete == null)
         {
             throw new Exception($"Column with id {columnId} not found.");
         }
 
-        boardToUpdate.Columns.Remove(columnToDelete!);
-        return boardToUpdate.Id;
+        referencedBoard.Columns.Remove(columnToDelete!);
+        return referencedBoard.Id;
     }
 }

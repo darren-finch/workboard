@@ -39,8 +39,7 @@ public class MockBoardRepository : IBoardRepository
     {
         if (board.Id == 0)
         {
-            var maxId = context.Boards.Count > 0 ? context.Boards.Max(b => b.Id) : 0;
-            board.Id = maxId + 1;
+            board.Id = context.nextBoardId;
         }
 
         context.Boards.Add(board);

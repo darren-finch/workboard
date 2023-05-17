@@ -5,11 +5,10 @@ import { Button, Col, Container, Row } from "react-bootstrap"
 import ContextButton from "../../components/ContextButton"
 import { ScreenSizeContext } from "../../context/ScreenSizeContext"
 import { ScreenSize } from "../../hooks/ScreenSize"
-import { taskRepository } from "../../persistence"
 import Column from "../../models/Column"
 import { useNavigate, useParams } from "react-router-dom"
 import Board from "../../models/Board"
-import { boardRepository, columnRepository } from "../../App"
+import { boardRepository, columnRepository, taskRepository } from "../../App"
 
 interface DragAndDropTaskColumns {
 	[key: string]: Column
@@ -39,7 +38,7 @@ const BoardView = () => {
 		}
 
 		try {
-			return boardRepository.onBoardUpdated({
+			return boardRepository.addBoardUpdatedListener({
 				boardId: boardIdAsNumber,
 				onBoardUpdated: (board) => {
 					if (!board) {
@@ -225,7 +224,7 @@ const BoardView = () => {
 																		<button
 																			className="icon-btn text-white bi bi-trash-fill"
 																			onClick={() =>
-																				taskRepository.deleteTask(curTask)
+																				taskRepository.deleteTask(curTask.id)
 																			}
 																		/>
 																		<ContextButton

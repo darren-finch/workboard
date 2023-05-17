@@ -5,8 +5,9 @@ import { useRef, useState } from "react"
 import { Button, Form, InputGroup, Modal } from "react-bootstrap"
 import { useTags } from "../../hooks/Tags"
 import Task from "../../models/Task"
-import { taskRepository } from "../../persistence"
 import useFormFields from "../../hooks/FormFields"
+import { taskRepository } from "../../App"
+import ErrorDisplay from "../../components/misc/ErrorDisplay"
 
 const EditTaskModal = NiceModal.create<NiceModalHocProps>(() => {
 	const modal = NiceModal.useModal("edit-task-modal")
@@ -39,6 +40,8 @@ const EditTaskModal = NiceModal.create<NiceModalHocProps>(() => {
 		() => saveTask()
 	)
 
+	const [error, setError] = useState<string>("")
+
 	const formRef = useRef<HTMLFormElement>(null)
 
 	const handleHide = () => {
@@ -63,9 +66,21 @@ const EditTaskModal = NiceModal.create<NiceModalHocProps>(() => {
 	const saveTask = async () => {
 		// Save or update the task
 		if (isEditingExistingTask) {
-			taskRepository.updateTask(new Task(task!.id, fields.name.value, fields.description.value, tags, columnId))
+			const res = await taskRepository.updateTask(
+				new Task(task!.id, fields.name.value, fields.description.value, tags, columnId)
+			)
+			if (!res.success) {
+				setError(res.message)
+				return
+			}
 		} else {
-			taskRepository.addTask(new Task(0, fields.name.value, fields.description.value, tags, columnId))
+			const res = await taskRepository.createTask(
+				new Task(0, fields.name.value, fields.description.value, tags, columnId)
+			)
+			if (!res.success) {
+				setError(res.message)
+				return
+			}
 		}
 
 		handleHide()
@@ -129,7 +144,12 @@ const EditTaskModal = NiceModal.create<NiceModalHocProps>(() => {
 					</Form.Group>
 				</Form>
 			</Modal.Body>
-			<Modal.Footer>
+			<Modal.Footer className="d-flex align-items-center">
+				{error && (
+					<div className="w-25 flex-grow-1">
+						<ErrorDisplay fontClass="fs-6" error={error} />
+					</div>
+				)}
 				<Button variant="secondary" onClick={handleHide}>
 					Close
 				</Button>

@@ -1,5 +1,5 @@
 import { HubConnection } from "@microsoft/signalr"
-import { RepositoryResponse } from "."
+import { RepositoryResponse } from "./Interfaces"
 import Column from "../models/Column"
 
 export class ColumnRepository {
@@ -9,13 +9,12 @@ export class ColumnRepository {
 		this.hubConnection = hubConnection
 	}
 
-	async createColumn(column: Column): Promise<RepositoryResponse<number>> {
-		let success = false
+	async createColumn(column: Column): Promise<RepositoryResponse<void>> {
+		let success = true
 		let message = ""
-		let id = -1
 
 		try {
-			id = await this.hubConnection.invoke("CreateColumn", column)
+			await this.hubConnection.invoke("CreateColumn", column)
 		} catch (err: any) {
 			success = false
 			message = err.message
@@ -24,12 +23,12 @@ export class ColumnRepository {
 		return {
 			success: success,
 			message: message,
-			value: id,
+			value: undefined,
 		}
 	}
 
 	async updateColumn(column: Column, updateTasks: boolean = false): Promise<RepositoryResponse<void>> {
-		let success = false
+		let success = true
 		let message = ""
 
 		try {
@@ -47,7 +46,7 @@ export class ColumnRepository {
 	}
 
 	async deleteColumn(column: Column): Promise<RepositoryResponse<void>> {
-		let success = false
+		let success = true
 		let message = ""
 
 		try {

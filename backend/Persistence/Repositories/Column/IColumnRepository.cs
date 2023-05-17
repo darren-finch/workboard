@@ -5,10 +5,9 @@ namespace backend.Persistence.Repositories;
 
 public interface IColumnRepository
 {
-    ICollection<Column> GetAllColumns(bool includeTasks = false);
     Column? GetColumnById(long id, bool includeTasks = false);
-    Column CreateColumn(Column column);
-    Column UpdateColumn(Column column);
-    // Returns the BoardId of the column that was deleted.
+    // These methods return the id of the board that was modified.
+    long CreateColumn(Column column);
+    long UpdateColumn(Column column);
     long DeleteColumn(long columnId);
 }

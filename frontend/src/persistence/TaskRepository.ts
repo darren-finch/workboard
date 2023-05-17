@@ -1,75 +1,65 @@
-import { RepositoryResponse } from "."
+import { HubConnection } from "@microsoft/signalr"
+import { RepositoryResponse } from "./Interfaces"
 import Task from "../models/Task"
 
 export class TaskRepository {
-	// Returns the id of the added task
-	async addTask(task: Task): Promise<RepositoryResponse<number>> {
-		let addedTask = false
+	private readonly hubConnection: HubConnection
 
-		// boards.forEach((board) => {
-		// 	board.columns.forEach((column) => {
-		// 		if (column.id === task.columnId) {
-		// 			if (!task.id) {
-		// 				task.id = uuid()
-		// 			}
-
-		// 			column.tasks.push(task)
-		// 			addedTask = true
-		// 			notifyBoardUpdatedListeners(board)
-		// 		}
-		// 	})
-		// })
-
-		return {
-			success: addedTask,
-			message: addedTask ? "Task added successfully" : "Task not added",
-			value: task.id,
-		}
+	constructor(hubConnection: HubConnection) {
+		this.hubConnection = hubConnection
 	}
 
-	async updateTask(task: Task): Promise<RepositoryResponse<void>> {
-		let updatedTask = false
+	// Returns the id of the added task
+	async createTask(task: Task): Promise<RepositoryResponse<void>> {
+		let success = true
+		let message = ""
 
-		// boards.forEach((board) => {
-		// 	board.columns.forEach((column) => {
-		// 		column.tasks.forEach((t) => {
-		// 			if (t.id === task.id) {
-		// 				t.name = task.name
-		// 				t.description = task.description
-		// 				t.tags = task.tags
-		// 				updatedTask = true
-		// 				notifyBoardUpdatedListeners(board)
-		// 			}
-		// 		})
-		// 	})
-		// })
+		try {
+			await this.hubConnection.invoke("CreateTask", task)
+		} catch (err: any) {
+			success = false
+			message = err.message
+		}
 
 		return {
-			success: updatedTask,
-			message: updatedTask ? "Task updated successfully" : "Task not updated",
+			success: success,
+			message: message,
 			value: undefined,
 		}
 	}
 
-	async deleteTask(task: Task): Promise<RepositoryResponse<void>> {
-		let deletedTask = false
+	async updateTask(task: Task): Promise<RepositoryResponse<void>> {
+		let success = true
+		let message = ""
 
-		// boards.forEach((board) => {
-		// 	board.columns.forEach((column) => {
-		// 		if (column.id === task.columnId) {
-		// 			column.tasks.splice(
-		// 				column.tasks.findIndex((t) => t.id === task.id),
-		// 				1
-		// 			)
-		// 			deletedTask = true
-		// 			notifyBoardUpdatedListeners(board)
-		// 		}
-		// 	})
-		// })
+		try {
+			await this.hubConnection.invoke("UpdateTask", task)
+		} catch (err: any) {
+			success = false
+			message = err.message
+		}
 
 		return {
-			success: deletedTask,
-			message: deletedTask ? "Task deleted successfully" : "Task not deleted",
+			success: success,
+			message: message,
+			value: undefined,
+		}
+	}
+
+	async deleteTask(taskId: number): Promise<RepositoryResponse<void>> {
+		let success = true
+		let message = ""
+
+		try {
+			await this.hubConnection.invoke("DeleteTask", taskId)
+		} catch (err: any) {
+			success = false
+			message = err.message
+		}
+
+		return {
+			success: success,
+			message: message,
 			value: undefined,
 		}
 	}

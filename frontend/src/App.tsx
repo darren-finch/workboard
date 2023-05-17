@@ -13,6 +13,7 @@ import EditBoard from "./layouts/EditBoard"
 import NotFound from "./layouts/NotFound"
 import BoardRepository from "./persistence/BoardRepository"
 import { ColumnRepository } from "./persistence/ColumnRepository"
+import { TaskRepository } from "./persistence/TaskRepository"
 
 const boardHubConnection = new HubConnectionBuilder()
 	.withUrl(process.env.REACT_APP_SIGNALR_SERVER_URL + "/boardHub", {
@@ -25,6 +26,7 @@ const axiosInstance = axios.create({ baseURL: process.env.REACT_APP_REST_API_SER
 
 const boardRepository = new BoardRepository(boardHubConnection, axiosInstance)
 const columnRepository = new ColumnRepository(boardHubConnection)
+const taskRepository = new TaskRepository(boardHubConnection)
 
 const App = () => {
 	const screenSize = useScreenSize()
@@ -56,5 +58,5 @@ const App = () => {
 	)
 }
 
-export { boardRepository, columnRepository }
+export { boardRepository, columnRepository, taskRepository }
 export default App

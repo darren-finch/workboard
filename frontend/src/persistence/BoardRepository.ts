@@ -1,6 +1,6 @@
 import { HubConnection } from "@microsoft/signalr"
 import Board from "../models/Board"
-import { RepositoryResponse, Unsubscribe } from "."
+import { RepositoryResponse, Unsubscribe } from "./Interfaces"
 import { AxiosInstance } from "axios"
 import Column from "../models/Column"
 
@@ -38,35 +38,25 @@ class BoardRepository {
 			this.notifyBoardsUpdatedListeners(newBoardsList)
 		})
 
-		this.hubConnection.on("ColumnCreated", (newColumn: Column) => {
-			this.getBoard(newColumn.boardId, true).then((res) => {
+		const onBoardUpdated = (idOfModifiedBoard: number) => {
+			this.getBoard(idOfModifiedBoard, true).then((res) => {
 				if (!res.success) {
 					console.error(res.message)
 				}
+				console.log(res.value)
 				this.notifyBoardUpdatedListeners(res.value)
 			})
-		})
+		}
 
-		this.hubConnection.on("ColumnUpdated", (newColumn: Column) => {
-			this.getBoard(newColumn.boardId, true).then((res) => {
-				if (!res.success) {
-					console.error(res.message)
-				}
-				this.notifyBoardUpdatedListeners(res.value)
-			})
-		})
-
-		this.hubConnection.on("ColumnDeleted", (idOfUpdatedBoard: number) => {
-			this.getBoard(idOfUpdatedBoard, true).then((res) => {
-				if (!res.success) {
-					console.error(res.message)
-				}
-				this.notifyBoardUpdatedListeners(res.value)
-			})
-		})
+		this.hubConnection.on("ColumnCreated", onBoardUpdated)
+		this.hubConnection.on("ColumnUpdated", onBoardUpdated)
+		this.hubConnection.on("ColumnDeleted", onBoardUpdated)
+		this.hubConnection.on("TaskCreated", onBoardUpdated)
+		this.hubConnection.on("TaskUpdated", onBoardUpdated)
+		this.hubConnection.on("TaskDeleted", onBoardUpdated)
 	}
 
-	onBoardsUpdated(listener: BoardsUpdatedListener): Unsubscribe {
+	addBoardsUpdatedListener(listener: BoardsUpdatedListener): Unsubscribe {
 		this.boardsUpdatedListeners.push(listener)
 
 		// Call the listener with the current boards
@@ -91,7 +81,7 @@ class BoardRepository {
 		}
 	}
 
-	onBoardUpdated(listener: BoardUpdatedListener): Unsubscribe {
+	addBoardUpdatedListener(listener: BoardUpdatedListener): Unsubscribe {
 		this.boardUpdatedListeners.push(listener)
 
 		// Call the listener with the current board
@@ -171,8 +161,8 @@ class BoardRepository {
 		}
 
 		return {
-			success: true,
-			message: "Board updated successfully",
+			success: success,
+			message: message,
 			value: undefined,
 		}
 	}

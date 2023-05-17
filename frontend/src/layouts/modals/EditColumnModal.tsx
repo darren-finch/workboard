@@ -50,11 +50,13 @@ const EditColumnModal = NiceModal.create<NiceModalHocProps>(() => {
 			)
 			if (!res.success) {
 				setError(res.message)
+				return
 			}
 		} else {
 			const res = await columnRepository.createColumn(new Column(0, fields.name.value, [], boardId))
 			if (!res.success) {
 				setError(res.message)
+				return
 			}
 		}
 
