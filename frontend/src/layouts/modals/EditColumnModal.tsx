@@ -1,16 +1,22 @@
 // This modal will be used to edit a task and it needs to be created using the NiceModal component from @ebay/nice-modal-react
 
 import NiceModal, { NiceModalHocProps } from "@ebay/nice-modal-react"
-import { useRef } from "react"
+import { useRef, useState } from "react"
 import { Button, Form, Modal } from "react-bootstrap"
+import { columnRepository } from "../../App"
 import useFormFields from "../../hooks/FormFields"
 import Column from "../../models/Column"
-import { columnRepository } from "../../persistence"
+import ErrorDisplay from "../../components/misc/ErrorDisplay"
 
 const EditColumnModal = NiceModal.create<NiceModalHocProps>(() => {
 	const modal = NiceModal.useModal("edit-column-modal")
 	const column: Column | undefined = modal.args?.column as Column
-	const boardId: string = modal.args?.boardId as string
+	const boardId: number = modal.args?.boardId as number
+	const [error, setError] = useState<string>("")
+
+	if (!boardId || isNaN(boardId) || boardId <= 0 || typeof boardId !== "number") {
+		throw new Error("Bad board ID")
+	}
 
 	const isEditingExistingColumn = column != null
 
@@ -39,9 +45,17 @@ const EditColumnModal = NiceModal.create<NiceModalHocProps>(() => {
 	const saveColumn = async () => {
 		// Save or update the column
 		if (isEditingExistingColumn) {
-			columnRepository.updateColumn(new Column(column.id, fields.name.value, column.tasks, column.boardId))
+			const res = await columnRepository.updateColumn(
+				new Column(column.id, fields.name.value, column.tasks, column.boardId)
+			)
+			if (!res.success) {
+				setError(res.message)
+			}
 		} else {
-			columnRepository.addColumn(new Column("", fields.name.value, [], boardId))
+			const res = await columnRepository.createColumn(new Column(0, fields.name.value, [], boardId))
+			if (!res.success) {
+				setError(res.message)
+			}
 		}
 
 		handleHide()
@@ -75,7 +89,12 @@ const EditColumnModal = NiceModal.create<NiceModalHocProps>(() => {
 					})}
 				</Form>
 			</Modal.Body>
-			<Modal.Footer>
+			<Modal.Footer className="d-flex align-items-center">
+				{error && (
+					<div className="w-25 flex-grow-1">
+						<ErrorDisplay fontClass="fs-6" error={error} />
+					</div>
+				)}
 				<Button variant="secondary" onClick={handleHide}>
 					Close
 				</Button>

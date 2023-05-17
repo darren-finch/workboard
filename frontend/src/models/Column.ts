@@ -1,12 +1,12 @@
 import Task from "./Task"
 
 export default class Column {
-	id: string
+	id: number
 	name: string
 	tasks: Task[]
-	boardId: string
+	boardId: number
 
-	constructor(id: string, name: string, tasks: Task[], boardId: string) {
+	constructor(id: number, name: string, tasks: Task[], boardId: number) {
 		this.id = id
 		this.name = name
 		this.tasks = tasks

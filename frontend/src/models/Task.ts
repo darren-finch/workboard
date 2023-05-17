@@ -1,11 +1,11 @@
 export default class Task {
-	id: string
+	id: number
 	name: string
 	description: string
 	tags: string[]
-	columnId: string
+	columnId: number
 
-	constructor(id: string, name: string, description: string, tags: string[], columnId: string) {
+	constructor(id: number, name: string, description: string, tags: string[], columnId: number) {
 		this.id = id
 		this.name = name
 		this.description = description

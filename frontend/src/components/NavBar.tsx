@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react"
 import { Button, Dropdown, Navbar } from "react-bootstrap"
 import { useNavigate } from "react-router-dom"
-import { boardRepository } from "../persistence"
 import Board from "../models/Board"
+import { boardRepository } from "../App"
 
 interface NavBarProps {
 	onSidebarToggle: () => void

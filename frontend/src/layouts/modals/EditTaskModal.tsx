@@ -11,7 +11,11 @@ import useFormFields from "../../hooks/FormFields"
 const EditTaskModal = NiceModal.create<NiceModalHocProps>(() => {
 	const modal = NiceModal.useModal("edit-task-modal")
 	const task: Task | undefined = modal.args?.task as Task
-	const columnId: string = modal.args?.columnId as string
+	const columnId: number = modal.args?.columnId as number
+
+	if (!columnId || isNaN(columnId) || columnId <= 0 || typeof columnId !== "number") {
+		throw new Error("Bad column ID")
+	}
 
 	const isEditingExistingTask = task != null
 
@@ -61,7 +65,7 @@ const EditTaskModal = NiceModal.create<NiceModalHocProps>(() => {
 		if (isEditingExistingTask) {
 			taskRepository.updateTask(new Task(task!.id, fields.name.value, fields.description.value, tags, columnId))
 		} else {
-			taskRepository.addTask(new Task("", fields.name.value, fields.description.value, tags, columnId))
+			taskRepository.addTask(new Task(0, fields.name.value, fields.description.value, tags, columnId))
 		}
 
 		handleHide()

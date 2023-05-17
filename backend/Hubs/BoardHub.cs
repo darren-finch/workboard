@@ -8,10 +8,14 @@ namespace backend.Hubs;
 public class BoardHub : Hub
 {
     private readonly IBoardRepository boardRepository;
+    private readonly IColumnRepository columnRepository;
+    private readonly ILogger logger;
 
-    public BoardHub(IBoardRepository boardRepository)
+    public BoardHub(IBoardRepository boardRepository, IColumnRepository columnRepository, ILogger<BoardHub> logger)
     {
         this.boardRepository = boardRepository;
+        this.columnRepository = columnRepository;
+        this.logger = logger;
     }
 
     public long CreateBoard(Board board)
@@ -32,5 +36,25 @@ public class BoardHub : Hub
     {
         var idOfDeletedBoard = boardRepository.DeleteBoard(boardId);
         Clients.All.SendAsync("BoardDeleted", idOfDeletedBoard, boardRepository.GetAllBoardsWithoutColumns());
+    }
+
+    public long CreateColumn(Column column)
+    {
+        var newColumn = columnRepository.CreateColumn(column);
+        Clients.All.SendAsync("ColumnCreated", newColumn);
+        return newColumn.Id;
+    }
+
+    public long UpdateColumn(Column column)
+    {
+        var newColumn = columnRepository.UpdateColumn(column);
+        Clients.All.SendAsync("ColumnUpdated", newColumn);
+        return newColumn.Id;
+    }
+
+    public void DeleteColumn(long columnId)
+    {
+        var idOfUpdatedBoard = columnRepository.DeleteColumn(columnId);
+        Clients.All.SendAsync("ColumnDeleted", idOfUpdatedBoard);
     }
 }

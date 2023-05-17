@@ -1,1 +1,3 @@
+# CUSTOM IGNORES
 .DS_Store
+.vscode/

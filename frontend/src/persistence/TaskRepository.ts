@@ -3,7 +3,7 @@ import Task from "../models/Task"
 
 export class TaskRepository {
 	// Returns the id of the added task
-	async addTask(task: Task): Promise<RepositoryResponse<string>> {
+	async addTask(task: Task): Promise<RepositoryResponse<number>> {
 		let addedTask = false
 
 		// boards.forEach((board) => {

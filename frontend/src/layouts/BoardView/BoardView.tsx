@@ -5,10 +5,11 @@ import { Button, Col, Container, Row } from "react-bootstrap"
 import ContextButton from "../../components/ContextButton"
 import { ScreenSizeContext } from "../../context/ScreenSizeContext"
 import { ScreenSize } from "../../hooks/ScreenSize"
-import { boardRepository, columnRepository, taskRepository } from "../../persistence"
+import { taskRepository } from "../../persistence"
 import Column from "../../models/Column"
 import { useNavigate, useParams } from "react-router-dom"
 import Board from "../../models/Board"
+import { boardRepository, columnRepository } from "../../App"
 
 interface DragAndDropTaskColumns {
 	[key: string]: Column
@@ -41,14 +42,20 @@ const BoardView = () => {
 			return boardRepository.onBoardUpdated({
 				boardId: boardIdAsNumber,
 				onBoardUpdated: (board) => {
+					if (!board) {
+						setError("Board not found")
+						navigate("/")
+						return
+					}
+
 					setBoard(board)
 
-					// setDragAndDropTaskColumns(
-					// 	board.columns.reduce((acc, column) => {
-					// 		acc[column.id] = column
-					// 		return acc
-					// 	}, {} as DragAndDropTaskColumns)
-					// )
+					setDragAndDropTaskColumns(
+						board.columns.reduce((acc, column) => {
+							acc[column.id.toString()] = column
+							return acc
+						}, {} as DragAndDropTaskColumns)
+					)
 				},
 			})
 		} catch (err: any) {
@@ -119,7 +126,7 @@ const BoardView = () => {
 							<Button
 								variant="primary"
 								className="me-2"
-								onClick={() => NiceModal.show("edit-column-modal", { boardId: boardId })}>
+								onClick={() => NiceModal.show("edit-column-modal", { boardId: parseInt(boardId) })}>
 								Add Column
 							</Button>
 							<button className="icon-btn text-white bi bi-search" />
@@ -157,7 +164,7 @@ const BoardView = () => {
 												onClick={() =>
 													NiceModal.show("edit-column-modal", {
 														column: col,
-														boardId: boardId,
+														boardId: parseInt(boardId),
 													})
 												}
 											/>
@@ -168,7 +175,7 @@ const BoardView = () => {
 											<button
 												className="btn btn-primary"
 												onClick={() => {
-													NiceModal.show("edit-task-modal", { columnId: colId })
+													NiceModal.show("edit-task-modal", { columnId: parseInt(colId) })
 												}}>
 												<i className="bi bi-plus-lg" />
 											</button>
@@ -190,7 +197,7 @@ const BoardView = () => {
 												{col.tasks.map((curTask, taskIndex) => (
 													<Draggable
 														key={curTask.id}
-														draggableId={curTask.id}
+														draggableId={curTask.id.toString()}
 														index={taskIndex}>
 														{(provided, snapshot) => (
 															<div
@@ -211,7 +218,7 @@ const BoardView = () => {
 																			onClick={() => {
 																				NiceModal.show("edit-task-modal", {
 																					task: curTask,
-																					columnId: colId,
+																					columnId: parseInt(colId),
 																				})
 																			}}
 																		/>

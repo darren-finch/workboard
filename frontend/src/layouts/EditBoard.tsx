@@ -1,11 +1,11 @@
-import { Button, CloseButton, Container, Form } from "react-bootstrap"
-import Board from "../models/Board"
 import { useEffect, useRef, useState } from "react"
-import { boardRepository } from "../persistence"
-import { useNavigate, useParams, useSearchParams } from "react-router-dom"
-import ErrorDisplay from "../components/misc/ErrorDisplay"
+import { Button, Container, Form } from "react-bootstrap"
+import { useNavigate, useParams } from "react-router-dom"
+import { boardRepository } from "../App"
 import BackButton from "../components/misc/BackButton"
+import ErrorDisplay from "../components/misc/ErrorDisplay"
 import useFormFields from "../hooks/FormFields"
+import Board from "../models/Board"
 
 const EditBoard = () => {
 	const navigate = useNavigate()
@@ -33,7 +33,7 @@ const EditBoard = () => {
 	useEffect(() => {
 		if (!isEditingExistingBoard) return
 
-		boardRepository.getBoard(boardId).then((result) => {
+		boardRepository.getBoard(parseInt(boardId)).then((result) => {
 			if (!result.success) {
 				setError(result.message)
 				return

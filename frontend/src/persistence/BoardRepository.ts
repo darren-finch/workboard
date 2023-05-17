@@ -2,6 +2,7 @@ import { HubConnection } from "@microsoft/signalr"
 import Board from "../models/Board"
 import { RepositoryResponse, Unsubscribe } from "."
 import { AxiosInstance } from "axios"
+import Column from "../models/Column"
 
 export interface BoardUpdatedListener {
 	boardId: number
@@ -21,7 +22,9 @@ class BoardRepository {
 	constructor(hubConnection: HubConnection, axiosInstance: AxiosInstance) {
 		this.hubConnection = hubConnection
 		this.axiosInstance = axiosInstance
+	}
 
+	init() {
 		this.hubConnection.on("BoardCreated", (newBoard: Board, newBoardsList: Board[]) => {
 			this.notifyBoardsUpdatedListeners(newBoardsList)
 		})
@@ -32,8 +35,34 @@ class BoardRepository {
 		})
 
 		this.hubConnection.on("BoardDeleted", (idOfDeletedBoard: number, newBoardsList: Board[]) => {
-			console.log("BoardDeleted", newBoardsList)
 			this.notifyBoardsUpdatedListeners(newBoardsList)
+		})
+
+		this.hubConnection.on("ColumnCreated", (newColumn: Column) => {
+			this.getBoard(newColumn.boardId, true).then((res) => {
+				if (!res.success) {
+					console.error(res.message)
+				}
+				this.notifyBoardUpdatedListeners(res.value)
+			})
+		})
+
+		this.hubConnection.on("ColumnUpdated", (newColumn: Column) => {
+			this.getBoard(newColumn.boardId, true).then((res) => {
+				if (!res.success) {
+					console.error(res.message)
+				}
+				this.notifyBoardUpdatedListeners(res.value)
+			})
+		})
+
+		this.hubConnection.on("ColumnDeleted", (idOfUpdatedBoard: number) => {
+			this.getBoard(idOfUpdatedBoard, true).then((res) => {
+				if (!res.success) {
+					console.error(res.message)
+				}
+				this.notifyBoardUpdatedListeners(res.value)
+			})
 		})
 	}
 
@@ -41,13 +70,18 @@ class BoardRepository {
 		this.boardsUpdatedListeners.push(listener)
 
 		// Call the listener with the current boards
-		this.axiosInstance.get<Board[]>("/boards").then((res) => {
-			if (res) {
-				listener(res.data)
-			} else {
-				throw new Error("Boards not found")
-			}
-		})
+		this.axiosInstance
+			.get<Board[]>("/boards")
+			.then((res) => {
+				if (res) {
+					listener(res.data)
+				} else {
+					throw new Error("Boards not found")
+				}
+			})
+			.catch((err) => {
+				console.error(err)
+			})
 
 		return () => {
 			this.boardsUpdatedListeners.splice(
@@ -61,13 +95,18 @@ class BoardRepository {
 		this.boardUpdatedListeners.push(listener)
 
 		// Call the listener with the current board
-		this.axiosInstance.get<Board>(`/boards/${listener.boardId}?includeColumns=true`).then((res) => {
-			if (res) {
-				listener.onBoardUpdated(res.data)
-			} else {
-				throw new Error(`Board with id ${listener.boardId} not found`)
-			}
-		})
+		this.axiosInstance
+			.get<Board>(`/boards/${listener.boardId}?includeColumns=true`)
+			.then((res) => {
+				if (res) {
+					listener.onBoardUpdated(res.data)
+				} else {
+					throw new Error(`Board with id ${listener.boardId} not found`)
+				}
+			})
+			.catch((err) => {
+				console.error(err)
+			})
 
 		return () => {
 			this.boardUpdatedListeners.splice(
@@ -77,7 +116,7 @@ class BoardRepository {
 		}
 	}
 
-	async getBoard(boardId: string, includeColumns: boolean = false): Promise<RepositoryResponse<Board | undefined>> {
+	async getBoard(boardId: number, includeColumns: boolean = false): Promise<RepositoryResponse<Board | undefined>> {
 		let board: Board | undefined = undefined
 		let success = true
 		let message = "Board found"
@@ -97,10 +136,10 @@ class BoardRepository {
 		}
 	}
 
-	async createBoard(board: Board): Promise<RepositoryResponse<string>> {
+	async createBoard(board: Board): Promise<RepositoryResponse<number>> {
 		let success = true
 		let message = "Board added successfully"
-		let id = ""
+		let id = -1
 
 		try {
 			id = await this.hubConnection.invoke("CreateBoard", board)

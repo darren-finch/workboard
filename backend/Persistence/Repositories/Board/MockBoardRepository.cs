@@ -2,11 +2,11 @@ using backend.Models;
 
 namespace backend.Persistence.Repositories;
 
-public class BoardRepository : IBoardRepository
+public class MockBoardRepository : IBoardRepository
 {
     private readonly MockDbContext context;
 
-    public BoardRepository(MockDbContext context)
+    public MockBoardRepository(MockDbContext context)
     {
         this.context = context;
     }
@@ -23,17 +23,16 @@ public class BoardRepository : IBoardRepository
     public Board? GetBoardById(long id, bool includeColumns = false)
     {
         var originalBoard = context.Boards.FirstOrDefault(b => b.Id == id, null);
-        return originalBoard;
-        // if (originalBoard == null)
-        // {
-        //     return null;
-        // }
-        // return new Board
-        // {
-        //     Id = originalBoard.Id,
-        //     Name = originalBoard.Name,
-        //     Columns = includeColumns ? originalBoard.Columns : new List<Column>()
-        // };
+        if (originalBoard == null)
+        {
+            return null;
+        }
+        return new Board
+        {
+            Id = originalBoard.Id,
+            Name = originalBoard.Name,
+            Columns = includeColumns ? originalBoard.Columns : new List<Column>()
+        };
     }
 
     public Board CreateBoard(Board board)

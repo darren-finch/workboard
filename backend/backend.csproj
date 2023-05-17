@@ -19,11 +19,15 @@
     <None Remove="Persistence\" />
     <None Remove="Persistence\Repositories\" />
     <None Remove="Models\" />
+    <None Remove="Persistence\Repositories\Board\" />
+    <None Remove="Persistence\Repositories\Column\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Hubs\" />
     <Folder Include="Persistence\" />
     <Folder Include="Persistence\Repositories\" />
     <Folder Include="Models\" />
+    <Folder Include="Persistence\Repositories\Board\" />
+    <Folder Include="Persistence\Repositories\Column\" />
   </ItemGroup>
 </Project>
