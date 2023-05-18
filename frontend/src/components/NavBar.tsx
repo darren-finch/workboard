@@ -47,9 +47,6 @@ const GlobalNavbar: React.FC<NavBarProps> = ({ onSidebarToggle }) => {
 			</div>
 
 			<div className="d-flex align-items-center">
-				<button className="icon-btn text-white bi bi-person-fill" />
-				<button className="icon-btn text-white bi bi-bell-fill" />
-				<button className="icon-btn text-white bi bi-question-circle-fill" />
 				<button
 					className="navbar-toggler d-flex align-items-center justify-content-center gap-2"
 					type="button"

@@ -144,18 +144,6 @@ const BoardView = () => {
 								onClick={() => NiceModal.show("edit-column-modal", { boardId: parseInt(boardId) })}>
 								Add Column
 							</Button>
-							<button className="icon-btn text-white bi bi-search" />
-							<button className="icon-btn text-white bi bi-funnel" />
-							<ContextButton
-								onSelect={(optionKey) => {
-									console.log(optionKey)
-								}}
-								options={[
-									{ key: "option1", label: "option1" },
-									{ key: "option2", label: "option2" },
-									{ key: "option3", label: "option3" },
-								]}
-							/>
 						</Col>
 					</Row>
 					<DragDropContext onDragEnd={handleDragEnd}>
@@ -241,12 +229,6 @@ const BoardView = () => {
 																			className="icon-btn text-white bi bi-trash-fill"
 																			onClick={() =>
 																				cardRepository.deleteCard(curCard.id)
-																			}
-																		/>
-																		<ContextButton
-																			options={[{ key: "misc", label: "Misc" }]}
-																			onSelect={(optionKey) =>
-																				console.log(optionKey)
 																			}
 																		/>
 																	</div>

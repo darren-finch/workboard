@@ -25,10 +25,6 @@ const BoardCard = ({ board }) => {
 							})
 						}
 					/>
-					<ContextButton
-						options={[{ key: "misc", label: "Misc" }]}
-						onSelect={(optionKey) => console.log(optionKey)}
-					/>
 				</div>
 			</div>
 		</div>
