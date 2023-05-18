@@ -8,7 +8,6 @@ import Sidebar from "./components/Sidebar"
 import { ScreenSizeContext } from "./context/ScreenSizeContext"
 import { useScreenSize } from "./hooks/ScreenSize"
 import BoardView from "./layouts/BoardView/BoardView"
-import Dashboard from "./layouts/Dashboard"
 import EditBoard from "./layouts/EditBoard"
 import NotFound from "./layouts/NotFound"
 import BoardRepository from "./persistence/BoardRepository"
@@ -17,6 +16,7 @@ import { CardRepository } from "./persistence/CardRepository"
 import FullScreenErrorDisplay from "./components/misc/FullScreenErrorDisplay"
 import { Button } from "react-bootstrap"
 import SplashScreen from "./components/misc/SplashScreen"
+import Dashboard from "./layouts/Dashboard/Dashboard"
 
 const boardHubConnection = new HubConnectionBuilder()
 	.withUrl(process.env.REACT_APP_SIGNALR_SERVER_URL + "/boardHub", {

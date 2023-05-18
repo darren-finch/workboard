@@ -159,7 +159,7 @@ const BoardView = () => {
 						</Col>
 					</Row>
 					<DragDropContext onDragEnd={handleDragEnd}>
-						<div className="d-flex flex-row flex-grow-1 overflow-scroll card-columns-container">
+						<div className="d-flex flex-row flex-grow-1 overflow-scroll hide-scrollbar-container">
 							{Object.entries(dragAndDropCardColumns).map(([colId, col], colIndex) => (
 								<div
 									key={colId}

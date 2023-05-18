@@ -65,12 +65,12 @@ input {
 
 @include media-breakpoint-up(md) {
 	/* Hide scrollbar for Chrome, Safari and Opera */
-	.card-columns-container::-webkit-scrollbar {
+	.hide-scrollbar-container::-webkit-scrollbar {
 		display: none;
 	}
 
 	/* Hide scrollbar for IE, Edge and Firefox */
-	.card-columns-container {
+	.hide-scrollbar-container {
 		-ms-overflow-style: none; /* IE and Edge */
 		scrollbar-width: none; /* Firefox */
 	}
