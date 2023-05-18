@@ -9,6 +9,7 @@ import Column from "../../models/Column"
 import { useNavigate, useParams } from "react-router-dom"
 import Board from "../../models/Board"
 import { boardRepository, columnRepository, taskRepository } from "../../App"
+import FullScreenErrorDisplay from "../../components/misc/FullScreenErrorDisplay"
 
 interface DragAndDropTaskColumns {
 	[key: string]: Column
@@ -38,23 +39,27 @@ const BoardView = () => {
 		}
 
 		try {
-			return boardRepository.addBoardUpdatedListener({
+			const handleBoardUpdated = (board: Board) => {
+				setBoard(board)
+
+				setDragAndDropTaskColumns(
+					board.columns.reduce((acc, column) => {
+						acc[column.id.toString()] = column
+						return acc
+					}, {} as DragAndDropTaskColumns)
+				)
+			}
+
+			boardRepository
+				.getBoard(boardIdAsNumber, true)
+				.then((res) => handleBoardUpdated(res.value))
+				.catch((err) => setError(err.message))
+
+			return boardRepository.addBoardEventListener({
 				boardId: boardIdAsNumber,
-				onBoardUpdated: (board) => {
-					if (!board) {
-						setError("Board not found")
-						navigate("/")
-						return
-					}
-
-					setBoard(board)
-
-					setDragAndDropTaskColumns(
-						board.columns.reduce((acc, column) => {
-							acc[column.id.toString()] = column
-							return acc
-						}, {} as DragAndDropTaskColumns)
-					)
+				onBoardUpdated: handleBoardUpdated,
+				onBoardDeleted: () => {
+					setError("Board not found")
 				},
 			})
 		} catch (err: any) {
@@ -99,7 +104,16 @@ const BoardView = () => {
 
 	return (
 		<Container fluid className="d-flex flex-column bg-dark text-white py-2" style={{ height: "100%" }}>
-			{error && <p className="h4 text-danger">{error}</p>}
+			{error && (
+				<FullScreenErrorDisplay error={error}>
+					<Button variant="primary" onClick={() => navigate("/")}>
+						Go to Dashboard
+					</Button>
+					<Button className="ms-2" variant="secondary" onClick={() => navigate(0)}>
+						Reload
+					</Button>
+				</FullScreenErrorDisplay>
+			)}
 			{!error && (
 				<>
 					<Row className="mt-2">

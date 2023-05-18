@@ -14,7 +14,7 @@ const GlobalNavbar: React.FC<NavBarProps> = ({ onSidebarToggle }) => {
 	const [boards, setBoards] = useState<Board[]>([])
 
 	useEffect(() => {
-		boardRepository.addBoardsUpdatedListener((boards) => {
+		boardRepository.addBoardsListEventListener((boards) => {
 			setBoards(boards)
 		})
 	}, [])

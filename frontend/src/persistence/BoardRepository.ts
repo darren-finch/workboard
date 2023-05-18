@@ -1,23 +1,23 @@
 import { HubConnection } from "@microsoft/signalr"
+import { AxiosInstance } from "axios"
 import Board from "../models/Board"
 import { RepositoryResponse, Unsubscribe } from "./Interfaces"
-import { AxiosInstance } from "axios"
-import Column from "../models/Column"
 
-export interface BoardUpdatedListener {
+export interface BoardEventListener {
 	boardId: number
-	onBoardUpdated: (board: Board) => void
+	onBoardUpdated?: (board: Board) => void
+	onBoardDeleted?: () => void
 }
 
-export interface BoardsUpdatedListener {
+export interface BoardsListEventListener {
 	(boards: Board[]): void
 }
 
 class BoardRepository {
 	private readonly hubConnection: HubConnection
 	private readonly axiosInstance: AxiosInstance
-	private readonly boardUpdatedListeners: BoardUpdatedListener[] = []
-	private readonly boardsUpdatedListeners: BoardsUpdatedListener[] = []
+	private readonly boardUpdatedListeners: BoardEventListener[] = []
+	private readonly boardsUpdatedListeners: BoardsListEventListener[] = []
 
 	constructor(hubConnection: HubConnection, axiosInstance: AxiosInstance) {
 		this.hubConnection = hubConnection
@@ -26,16 +26,16 @@ class BoardRepository {
 
 	init() {
 		this.hubConnection.on("BoardCreated", (newBoard: Board, newBoardsList: Board[]) => {
-			this.notifyBoardsUpdatedListeners(newBoardsList)
+			this.notifyBoardListEventListenersOfUpdate(newBoardsList)
 		})
 
 		this.hubConnection.on("BoardUpdated", (updatedBoard: Board, newBoardsList: Board[]) => {
-			this.notifyBoardUpdatedListeners(updatedBoard)
-			this.notifyBoardsUpdatedListeners(newBoardsList)
+			this.notifyBoardEventListenersOfUpdate(updatedBoard)
+			this.notifyBoardListEventListenersOfUpdate(newBoardsList)
 		})
 
 		this.hubConnection.on("BoardDeleted", (idOfDeletedBoard: number, newBoardsList: Board[]) => {
-			this.notifyBoardsUpdatedListeners(newBoardsList)
+			this.notifyBoardListEventListenersOfUpdate(newBoardsList)
 		})
 
 		const onBoardUpdated = (idOfModifiedBoard: number) => {
@@ -44,7 +44,7 @@ class BoardRepository {
 					console.error(res.message)
 				}
 				console.log(res.value)
-				this.notifyBoardUpdatedListeners(res.value)
+				this.notifyBoardEventListenersOfUpdate(res.value)
 			})
 		}
 
@@ -56,7 +56,7 @@ class BoardRepository {
 		this.hubConnection.on("TaskDeleted", onBoardUpdated)
 	}
 
-	addBoardsUpdatedListener(listener: BoardsUpdatedListener): Unsubscribe {
+	addBoardsListEventListener(listener: BoardsListEventListener): Unsubscribe {
 		this.boardsUpdatedListeners.push(listener)
 
 		// Call the listener with the current boards
@@ -70,7 +70,7 @@ class BoardRepository {
 				}
 			})
 			.catch((err) => {
-				console.error(err)
+				throw err
 			})
 
 		return () => {
@@ -81,22 +81,8 @@ class BoardRepository {
 		}
 	}
 
-	addBoardUpdatedListener(listener: BoardUpdatedListener): Unsubscribe {
+	addBoardEventListener(listener: BoardEventListener): Unsubscribe {
 		this.boardUpdatedListeners.push(listener)
-
-		// Call the listener with the current board
-		this.axiosInstance
-			.get<Board>(`/boards/${listener.boardId}?includeColumns=true`)
-			.then((res) => {
-				if (res) {
-					listener.onBoardUpdated(res.data)
-				} else {
-					throw new Error(`Board with id ${listener.boardId} not found`)
-				}
-			})
-			.catch((err) => {
-				console.error(err)
-			})
 
 		return () => {
 			this.boardUpdatedListeners.splice(
@@ -105,6 +91,26 @@ class BoardRepository {
 			)
 		}
 	}
+
+	// async getBoards(): Promise<RepositoryResponse<Board[]>> {
+	// 	let boards: Board[] = []
+	// 	let success = true
+	// 	let message = "Boards found"
+
+	// 	try {
+	// 		const res = await this.axiosInstance.get<Board[]>("/boards")
+	// 		boards = res.data
+	// 	} catch (err: any) {
+	// 		success = false
+	// 		message = err.message
+	// 	}
+
+	// 	return {
+	// 		success: !!boards,
+	// 		message: boards ? "Boards found" : "Boards not found",
+	// 		value: boards,
+	// 	}
+	// }
 
 	async getBoard(boardId: number, includeColumns: boolean = false): Promise<RepositoryResponse<Board | undefined>> {
 		let board: Board | undefined = undefined
@@ -186,10 +192,18 @@ class BoardRepository {
 		}
 	}
 
-	private notifyBoardUpdatedListeners(board: Board) {
+	private notifyBoardEventListenersOfUpdate(board: Board) {
 		this.boardUpdatedListeners.forEach((l) => {
 			if (l.boardId === board.id) {
-				l.onBoardUpdated(board)
+				l.onBoardUpdated && l.onBoardUpdated(board)
+			}
+		})
+	}
+
+	private notifyBoardEventListenersOfDelete(board: Board) {
+		this.boardUpdatedListeners.forEach((l) => {
+			if (l.boardId === board.id) {
+				l.onBoardDeleted && l.onBoardDeleted()
 			}
 		})
 	}
@@ -197,7 +211,7 @@ class BoardRepository {
 	// This should only be called when meta data of the board changes, like the name
 	// or the columns. When a task is added, updated or deleted, the boardUpdatedListeners
 	// should be called instead.
-	private notifyBoardsUpdatedListeners(newBoards: Board[]) {
+	private notifyBoardListEventListenersOfUpdate(newBoards: Board[]) {
 		this.boardsUpdatedListeners.forEach((l) => l(newBoards))
 	}
 }
