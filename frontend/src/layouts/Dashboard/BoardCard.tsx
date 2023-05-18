@@ -1,7 +1,6 @@
 import NiceModal from "@ebay/nice-modal-react"
 import { useNavigate } from "react-router-dom"
 import { boardRepository } from "../../App"
-import ContextButton from "../../components/ContextButton"
 
 const BoardCard = ({ board }) => {
 	const navigate = useNavigate()

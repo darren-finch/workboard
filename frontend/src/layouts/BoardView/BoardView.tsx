@@ -1,17 +1,16 @@
 import NiceModal from "@ebay/nice-modal-react"
 import { useContext, useEffect, useState } from "react"
-import { DragDropContext, Draggable, Droppable } from "react-beautiful-dnd"
 import { Button, Col, Container, Row } from "react-bootstrap"
-import ContextButton from "../../components/ContextButton"
-import { ScreenSizeContext } from "../../context/ScreenSizeContext"
-import Column from "../../models/Column"
 import { useNavigate, useParams } from "react-router-dom"
-import Board from "../../models/Board"
-import { boardRepository, columnRepository, cardRepository } from "../../App"
+import { boardRepository, cardRepository, columnRepository } from "../../App"
 import FullScreenErrorDisplay from "../../components/misc/FullScreenErrorDisplay"
-import { ScreenBreakpoint } from "../../util/ScreenBreakpoint"
+import { ScreenSizeContext } from "../../context/ScreenSizeContext"
+import Board from "../../models/Board"
+import Card from "../../models/Card"
+import Column from "../../models/Column"
+import ColumnsWrap from "./ColumnsWrap"
 
-interface DragAndDropCardColumns {
+export interface DragAndDropCardColumns {
 	[key: string]: Column
 }
 
@@ -102,6 +101,33 @@ const BoardView = () => {
 		}
 	}
 
+	const handleColumnEdit = (column: Column) => {
+		NiceModal.show("edit-column-modal", {
+			column: column,
+			boardId: parseInt(boardId),
+		})
+	}
+
+	const handleColumnDelete = (column: Column) => {
+		// TODO: Show confirmation modal
+		columnRepository.deleteColumn(column)
+	}
+
+	const handleCardAdd = (column: Column) => {
+		NiceModal.show("edit-card-modal", { columnId: column.id })
+	}
+
+	const handleCardEdit = (card: Card) => {
+		NiceModal.show("edit-card-modal", {
+			card: card,
+			columnId: card.columnId,
+		})
+	}
+
+	const handleCardDelete = (card: Card) => {
+		cardRepository.deleteCard(card.id)
+	}
+
 	return (
 		<Container fluid className="d-flex flex-column bg-dark text-white py-2" style={{ height: "100%" }}>
 			{error && (
@@ -146,113 +172,15 @@ const BoardView = () => {
 							</Button>
 						</Col>
 					</Row>
-					<DragDropContext onDragEnd={handleDragEnd}>
-						<div className="d-flex flex-row flex-grow-1 overflow-scroll hide-scrollbar-container">
-							{Object.entries(dragAndDropCardColumns).map(([colId, col], colIndex) => (
-								<div
-									key={colId}
-									className={`d-flex flex-column flex-grow-1
-					${colIndex == 0 ? "border-start" : ""}
-					border-end border-secondary p-2`}
-									style={{
-										minWidth: screenSize <= ScreenBreakpoint.XS ? "100%" : "250px",
-										minHeight: "200px",
-										maxWidth: screenSize <= ScreenBreakpoint.XS ? undefined : "500px",
-									}}>
-									<div className="w-100 d-flex align-items-center justify-content-between">
-										<h3>{col.name}</h3>
-										<div className="d-flex align-items-center">
-											<button
-												className="icon-btn text-white bi bi-pencil-fill fs-6"
-												onClick={() =>
-													NiceModal.show("edit-column-modal", {
-														column: col,
-														boardId: parseInt(boardId),
-													})
-												}
-											/>
-											<button
-												className="icon-btn text-white bi bi-trash-fill fs-6"
-												onClick={() => columnRepository.deleteColumn(col)}
-											/>
-											<button
-												className="btn btn-primary"
-												onClick={() => {
-													NiceModal.show("edit-card-modal", { columnId: parseInt(colId) })
-												}}>
-												<i className="bi bi-plus-lg" />
-											</button>
-										</div>
-									</div>
-
-									<Droppable key={colId} droppableId={colId}>
-										{(provided, snapshot) => (
-											<div
-												{...provided.droppableProps}
-												ref={provided.innerRef}
-												className={`flex-grow-1 ${
-													snapshot.isDraggingOver ? "bg-secondary" : ""
-												}`}
-												style={{
-													height: "fit-content",
-													boxSizing: "border-box",
-												}}>
-												{col.cards.map((curCard, cardIndex) => (
-													<Draggable
-														key={curCard.id}
-														draggableId={curCard.id.toString()}
-														index={cardIndex}>
-														{(provided, snapshot) => (
-															<div
-																ref={provided.innerRef}
-																{...provided.draggableProps}
-																{...provided.dragHandleProps}
-																className={`card-card my-2 border p-2 bg-dark rounded ${
-																	snapshot.isDragging
-																		? "border-primary"
-																		: "border-secondary shadow-sm"
-																}`}
-																style={{ ...provided.draggableProps.style }}>
-																<div className="d-flex align-items-top justify-content-between">
-																	<h3>{curCard.name}</h3>
-																	<div className="d-flex align-items-center">
-																		<button
-																			className="icon-btn text-white bi bi-pencil-fill fs-6"
-																			onClick={() => {
-																				NiceModal.show("edit-card-modal", {
-																					card: curCard,
-																					columnId: parseInt(colId),
-																				})
-																			}}
-																		/>
-																		<button
-																			className="icon-btn text-white bi bi-trash-fill"
-																			onClick={() =>
-																				cardRepository.deleteCard(curCard.id)
-																			}
-																		/>
-																	</div>
-																</div>
-																<p>{curCard.description}</p>
-																<div className="d-flex flex-wrap gap-2">
-																	{curCard.tags.map((tag) => (
-																		<span key={tag} className="badge bg-secondary">
-																			{tag}
-																		</span>
-																	))}
-																</div>
-															</div>
-														)}
-													</Draggable>
-												))}
-												{provided.placeholder}
-											</div>
-										)}
-									</Droppable>
-								</div>
-							))}
-						</div>
-					</DragDropContext>
+					<ColumnsWrap
+						columns={dragAndDropCardColumns}
+						onDragEnd={handleDragEnd}
+						onColumnEdit={handleColumnEdit}
+						onColumnDelete={handleColumnDelete}
+						onCardAdd={handleCardAdd}
+						onCardEdit={handleCardEdit}
+						onCardDelete={handleCardDelete}
+					/>
 				</>
 			)}
 		</Container>
