@@ -6,7 +6,6 @@ import { BrowserRouter, Route, Routes, useNavigate } from "react-router-dom"
 import NavBar from "./components/NavBar"
 import Sidebar from "./components/Sidebar"
 import { ScreenSizeContext } from "./context/ScreenSizeContext"
-import { useScreenSize } from "./hooks/ScreenSize"
 import BoardView from "./layouts/BoardView/BoardView"
 import EditBoard from "./layouts/EditBoard"
 import NotFound from "./layouts/NotFound"
@@ -38,7 +37,12 @@ enum AppState {
 }
 
 const App = () => {
-	const screenSize = useScreenSize()
+	const [screenSize, setScreenSize] = useState<number>(window.innerWidth)
+
+	useEffect(() => {
+		return window.addEventListener("resize", () => setScreenSize(window.innerWidth))
+	}, [])
+
 	const [sidebarVisible, setSidebarVisible] = useState(false)
 
 	const [error, setError] = useState<string>("")

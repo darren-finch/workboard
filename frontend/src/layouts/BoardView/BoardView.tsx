@@ -4,12 +4,12 @@ import { DragDropContext, Draggable, Droppable } from "react-beautiful-dnd"
 import { Button, Col, Container, Row } from "react-bootstrap"
 import ContextButton from "../../components/ContextButton"
 import { ScreenSizeContext } from "../../context/ScreenSizeContext"
-import { ScreenSize } from "../../hooks/ScreenSize"
 import Column from "../../models/Column"
 import { useNavigate, useParams } from "react-router-dom"
 import Board from "../../models/Board"
 import { boardRepository, columnRepository, cardRepository } from "../../App"
 import FullScreenErrorDisplay from "../../components/misc/FullScreenErrorDisplay"
+import { ScreenBreakpoint } from "../../util/ScreenBreakpoint"
 
 interface DragAndDropCardColumns {
 	[key: string]: Column
@@ -167,9 +167,9 @@ const BoardView = () => {
 					${colIndex == 0 ? "border-start" : ""}
 					border-end border-secondary p-2`}
 									style={{
-										minWidth: screenSize == ScreenSize.XS ? "100%" : "250px",
+										minWidth: screenSize <= ScreenBreakpoint.XS ? "100%" : "250px",
 										minHeight: "200px",
-										maxWidth: screenSize == ScreenSize.XS ? undefined : "500px",
+										maxWidth: screenSize <= ScreenBreakpoint.XS ? undefined : "500px",
 									}}>
 									<div className="w-100 d-flex align-items-center justify-content-between">
 										<h3>{col.name}</h3>
