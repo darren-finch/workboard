@@ -1,21 +1,21 @@
 import { HubConnection } from "@microsoft/signalr"
 import { RepositoryResponse } from "./Interfaces"
-import Task from "../models/Task"
+import Card from "../models/Card"
 
-export class TaskRepository {
+export class CardRepository {
 	private readonly hubConnection: HubConnection
 
 	constructor(hubConnection: HubConnection) {
 		this.hubConnection = hubConnection
 	}
 
-	// Returns the id of the added task
-	async createTask(task: Task): Promise<RepositoryResponse<void>> {
+	// Returns the id of the added card
+	async createCard(card: Card): Promise<RepositoryResponse<void>> {
 		let success = true
 		let message = ""
 
 		try {
-			await this.hubConnection.invoke("CreateTask", task)
+			await this.hubConnection.invoke("CreateCard", card)
 		} catch (err: any) {
 			success = false
 			message = err.message
@@ -28,12 +28,12 @@ export class TaskRepository {
 		}
 	}
 
-	async updateTask(task: Task): Promise<RepositoryResponse<void>> {
+	async updateCard(card: Card): Promise<RepositoryResponse<void>> {
 		let success = true
 		let message = ""
 
 		try {
-			await this.hubConnection.invoke("UpdateTask", task)
+			await this.hubConnection.invoke("UpdateCard", card)
 		} catch (err: any) {
 			success = false
 			message = err.message
@@ -46,12 +46,12 @@ export class TaskRepository {
 		}
 	}
 
-	async deleteTask(taskId: number): Promise<RepositoryResponse<void>> {
+	async deleteCard(cardId: number): Promise<RepositoryResponse<void>> {
 		let success = true
 		let message = ""
 
 		try {
-			await this.hubConnection.invoke("DeleteTask", taskId)
+			await this.hubConnection.invoke("DeleteCard", cardId)
 		} catch (err: any) {
 			success = false
 			message = err.message

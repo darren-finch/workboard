@@ -1,15 +1,15 @@
-import Task from "./Task"
+import Card from "./Card"
 
 export default class Column {
 	id: number
 	name: string
-	tasks: Task[]
+	cards: Card[]
 	boardId: number
 
-	constructor(id: number, name: string, tasks: Task[], boardId: number) {
+	constructor(id: number, name: string, cards: Card[], boardId: number) {
 		this.id = id
 		this.name = name
-		this.tasks = tasks
+		this.cards = cards
 		this.boardId = boardId
 	}
 }

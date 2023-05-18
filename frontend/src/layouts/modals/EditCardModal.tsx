@@ -1,43 +1,41 @@
-// This modal will be used to edit a task and it needs to be created using the NiceModal component from @ebay/nice-modal-react
-
 import NiceModal, { NiceModalHocProps } from "@ebay/nice-modal-react"
 import { useRef, useState } from "react"
 import { Button, Form, InputGroup, Modal } from "react-bootstrap"
 import { useTags } from "../../hooks/Tags"
-import Task from "../../models/Task"
+import Card from "../../models/Card"
 import useFormFields from "../../hooks/FormFields"
-import { taskRepository } from "../../App"
+import { cardRepository } from "../../App"
 import ErrorDisplay from "../../components/misc/ErrorDisplay"
 
-const EditTaskModal = NiceModal.create<NiceModalHocProps>(() => {
-	const modal = NiceModal.useModal("edit-task-modal")
-	const task: Task | undefined = modal.args?.task as Task
+const EditCardModal = NiceModal.create<NiceModalHocProps>(() => {
+	const modal = NiceModal.useModal("edit-card-modal")
+	const card: Card | undefined = modal.args?.card as Card
 	const columnId: number = modal.args?.columnId as number
 
 	if (!columnId || isNaN(columnId) || columnId <= 0 || typeof columnId !== "number") {
 		throw new Error("Bad column ID")
 	}
 
-	const isEditingExistingTask = task != null
+	const isEditingExistingCard = card != null
 
 	const [currentTag, setCurrentTag] = useState<string>("")
-	const [tags, addTag, removeTag, clearTags] = useTags(task?.tags ?? [])
+	const [tags, addTag, removeTag, clearTags] = useTags(card?.tags ?? [])
 	const [fields, wasValidated, handleFormInputChange, handleFormSubmitted] = useFormFields(
 		{
 			name: {
 				name: "name",
 				printName: "Name",
-				value: task?.name ?? "",
+				value: card?.name ?? "",
 				isValid: false,
 			},
 			description: {
 				name: "description",
 				printName: "Description",
-				value: task?.description ?? "",
+				value: card?.description ?? "",
 				isValid: false,
 			},
 		},
-		() => saveTask()
+		() => saveCard()
 	)
 
 	const [error, setError] = useState<string>("")
@@ -63,19 +61,19 @@ const EditTaskModal = NiceModal.create<NiceModalHocProps>(() => {
 		setCurrentTag("")
 	}
 
-	const saveTask = async () => {
-		// Save or update the task
-		if (isEditingExistingTask) {
-			const res = await taskRepository.updateTask(
-				new Task(task!.id, fields.name.value, fields.description.value, tags, columnId)
+	const saveCard = async () => {
+		// Save or update the card
+		if (isEditingExistingCard) {
+			const res = await cardRepository.updateCard(
+				new Card(card!.id, fields.name.value, fields.description.value, tags, columnId)
 			)
 			if (!res.success) {
 				setError(res.message)
 				return
 			}
 		} else {
-			const res = await taskRepository.createTask(
-				new Task(0, fields.name.value, fields.description.value, tags, columnId)
+			const res = await cardRepository.createCard(
+				new Card(0, fields.name.value, fields.description.value, tags, columnId)
 			)
 			if (!res.success) {
 				setError(res.message)
@@ -89,7 +87,7 @@ const EditTaskModal = NiceModal.create<NiceModalHocProps>(() => {
 	return (
 		<Modal show={modal.visible} onHide={handleHide} onExited={handleExited} centered>
 			<Modal.Header closeButton>
-				<Modal.Title>{isEditingExistingTask ? "Edit" : "Add"} Task</Modal.Title>
+				<Modal.Title>{isEditingExistingCard ? "Edit" : "Add"} Card</Modal.Title>
 			</Modal.Header>
 			<Modal.Body>
 				<Form ref={formRef} onSubmit={(e) => handleFormSubmitted(e)} noValidate validated={wasValidated}>
@@ -161,4 +159,4 @@ const EditTaskModal = NiceModal.create<NiceModalHocProps>(() => {
 	)
 })
 
-export default EditTaskModal
+export default EditCardModal

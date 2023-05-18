@@ -51,9 +51,9 @@ class BoardRepository {
 		this.hubConnection.on("ColumnCreated", onBoardUpdated)
 		this.hubConnection.on("ColumnUpdated", onBoardUpdated)
 		this.hubConnection.on("ColumnDeleted", onBoardUpdated)
-		this.hubConnection.on("TaskCreated", onBoardUpdated)
-		this.hubConnection.on("TaskUpdated", onBoardUpdated)
-		this.hubConnection.on("TaskDeleted", onBoardUpdated)
+		this.hubConnection.on("CardCreated", onBoardUpdated)
+		this.hubConnection.on("CardUpdated", onBoardUpdated)
+		this.hubConnection.on("CardDeleted", onBoardUpdated)
 	}
 
 	addBoardsListEventListener(listener: BoardsListEventListener): Unsubscribe {
@@ -209,7 +209,7 @@ class BoardRepository {
 	}
 
 	// This should only be called when meta data of the board changes, like the name
-	// or the columns. When a task is added, updated or deleted, the boardUpdatedListeners
+	// or the columns. When a card is added, updated or deleted, the boardUpdatedListeners
 	// should be called instead.
 	private notifyBoardListEventListenersOfUpdate(newBoards: Board[]) {
 		this.boardsUpdatedListeners.forEach((l) => l(newBoards))

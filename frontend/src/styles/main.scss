@@ -61,16 +61,16 @@ input {
 	color: $light;
 }
 
-// Scrollbars cause a weird dead space on the bottom and right of the task board view on larger, so we hide them here.
+// Scrollbars cause a weird dead space on the bottom and right of the card board view on larger, so we hide them here.
 
 @include media-breakpoint-up(md) {
 	/* Hide scrollbar for Chrome, Safari and Opera */
-	.task-columns-container::-webkit-scrollbar {
+	.card-columns-container::-webkit-scrollbar {
 		display: none;
 	}
 
 	/* Hide scrollbar for IE, Edge and Firefox */
-	.task-columns-container {
+	.card-columns-container {
 		-ms-overflow-style: none; /* IE and Edge */
 		scrollbar-width: none; /* Firefox */
 	}

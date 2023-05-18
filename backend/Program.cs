@@ -1,9 +1,6 @@
-﻿using backend;
-using backend.Hubs;
+﻿using backend.Hubs;
 using backend.Persistence;
 using backend.Persistence.Repositories;
-using Microsoft.AspNetCore.HttpLogging;
-using Microsoft.AspNetCore.SignalR;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,7 +11,7 @@ builder.Services.AddCors();
 builder.Services.AddSingleton<MockDbContext>();
 builder.Services.AddScoped<IBoardRepository, MockBoardRepository>();
 builder.Services.AddScoped<IColumnRepository, MockColumnRepository>();
-builder.Services.AddScoped<ITaskRepository, TaskRepository>();
+builder.Services.AddScoped<ICardRepository, CardRepository>();
 builder.Services.AddLogging(builder => builder.AddConsole());
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();

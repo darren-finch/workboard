@@ -5,7 +5,7 @@ namespace backend.Persistence.Repositories;
 
 public interface IColumnRepository
 {
-    Column? GetColumnById(long id, bool includeTasks = false);
+    Column? GetColumnById(long id, bool includeCards = false);
     // These methods return the id of the board that was modified.
     long CreateColumn(Column column);
     long UpdateColumn(Column column);

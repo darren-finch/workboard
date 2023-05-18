@@ -11,7 +11,7 @@ public class MockColumnRepository : IColumnRepository
         this.context = context;
     }
 
-    public Column? GetColumnById(long id, bool includeTasks = false)
+    public Column? GetColumnById(long id, bool includeCards = false)
     {
         var column = context.Boards.Select(b => b.Columns).SelectMany(c => c).FirstOrDefault(c => c.Id == id);
         return column;
@@ -50,7 +50,7 @@ public class MockColumnRepository : IColumnRepository
         }
 
         referencedColumn.Name = column.Name;
-        referencedColumn.Tasks = column.Tasks;
+        referencedColumn.Cards = column.Cards;
 
         return referencedColumn.BoardId;
     }

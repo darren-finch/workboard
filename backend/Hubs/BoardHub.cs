@@ -9,14 +9,14 @@ public class BoardHub : Hub
 {
     private readonly IBoardRepository boardRepository;
     private readonly IColumnRepository columnRepository;
-    private readonly ITaskRepository tasksRepository;
+    private readonly ICardRepository cardsRepository;
     private readonly ILogger logger;
 
-    public BoardHub(IBoardRepository boardRepository, IColumnRepository columnRepository, ITaskRepository tasksRepository, ILogger<BoardHub> logger)
+    public BoardHub(IBoardRepository boardRepository, IColumnRepository columnRepository, ICardRepository cardsRepository, ILogger<BoardHub> logger)
     {
         this.boardRepository = boardRepository;
         this.columnRepository = columnRepository;
-        this.tasksRepository = tasksRepository;
+        this.cardsRepository = cardsRepository;
         this.logger = logger;
     }
 
@@ -57,21 +57,21 @@ public class BoardHub : Hub
         Clients.All.SendAsync("ColumnDeleted", idOfModifiedBoard);
     }
 
-    public void CreateTask(Models.Task task)
+    public void CreateCard(Models.Card card)
     {
-        var idOfModifiedBoard = tasksRepository.CreateTask(task);
-        Clients.All.SendAsync("TaskCreated", idOfModifiedBoard);
+        var idOfModifiedBoard = cardsRepository.CreateCard(card);
+        Clients.All.SendAsync("CardCreated", idOfModifiedBoard);
     }
 
-    public void UpdateTask(Models.Task task)
+    public void UpdateCard(Models.Card card)
     {
-        var idOfModifiedBoard = tasksRepository.UpdateTask(task);
-        Clients.All.SendAsync("TaskUpdated", idOfModifiedBoard);
+        var idOfModifiedBoard = cardsRepository.UpdateCard(card);
+        Clients.All.SendAsync("CardUpdated", idOfModifiedBoard);
     }
 
-    public void DeleteTask(long taskId)
+    public void DeleteCard(long cardId)
     {
-        var idOfModifiedBoard = tasksRepository.DeleteTask(taskId);
-        Clients.All.SendAsync("TaskDeleted", idOfModifiedBoard);
+        var idOfModifiedBoard = cardsRepository.DeleteCard(cardId);
+        Clients.All.SendAsync("CardDeleted", idOfModifiedBoard);
     }
 }

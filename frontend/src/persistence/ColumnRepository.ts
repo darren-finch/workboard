@@ -27,7 +27,7 @@ export class ColumnRepository {
 		}
 	}
 
-	async updateColumn(column: Column, updateTasks: boolean = false): Promise<RepositoryResponse<void>> {
+	async updateColumn(column: Column, updateCards: boolean = false): Promise<RepositoryResponse<void>> {
 		let success = true
 		let message = ""
 

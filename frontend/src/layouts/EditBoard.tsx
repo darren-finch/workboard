@@ -44,7 +44,7 @@ const EditBoard = () => {
 	}, [])
 
 	const saveBoard = async () => {
-		// Save or update the task
+		// Save or update the card
 		if (isEditingExistingBoard) {
 			const result = await boardRepository.updateBoard(new Board(board.id, fields.name.value, board.columns))
 			if (!result.success) {

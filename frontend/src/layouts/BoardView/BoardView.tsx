@@ -8,10 +8,10 @@ import { ScreenSize } from "../../hooks/ScreenSize"
 import Column from "../../models/Column"
 import { useNavigate, useParams } from "react-router-dom"
 import Board from "../../models/Board"
-import { boardRepository, columnRepository, taskRepository } from "../../App"
+import { boardRepository, columnRepository, cardRepository } from "../../App"
 import FullScreenErrorDisplay from "../../components/misc/FullScreenErrorDisplay"
 
-interface DragAndDropTaskColumns {
+interface DragAndDropCardColumns {
 	[key: string]: Column
 }
 
@@ -24,7 +24,7 @@ const BoardView = () => {
 	const [board, setBoard] = useState<Board>(new Board(0, "", []))
 	const [error, setError] = useState<string>("")
 
-	const [dragAndDropTaskColumns, setDragAndDropTaskColumns] = useState<DragAndDropTaskColumns>({})
+	const [dragAndDropCardColumns, setDragAndDropCardColumns] = useState<DragAndDropCardColumns>({})
 
 	useEffect(() => {
 		if (!boardId) {
@@ -42,11 +42,11 @@ const BoardView = () => {
 			const handleBoardUpdated = (board: Board) => {
 				setBoard(board)
 
-				setDragAndDropTaskColumns(
+				setDragAndDropCardColumns(
 					board.columns.reduce((acc, column) => {
 						acc[column.id.toString()] = column
 						return acc
-					}, {} as DragAndDropTaskColumns)
+					}, {} as DragAndDropCardColumns)
 				)
 			}
 
@@ -73,30 +73,30 @@ const BoardView = () => {
 
 		if (source.droppableId !== destination.droppableId) {
 			// Dropping into a different column
-			const sourceColumn = dragAndDropTaskColumns[source.droppableId]
-			const destColumn = dragAndDropTaskColumns[destination.droppableId]
+			const sourceColumn = dragAndDropCardColumns[source.droppableId]
+			const destColumn = dragAndDropCardColumns[destination.droppableId]
 
-			const sourceTasks = [...sourceColumn.tasks]
-			const destTasks = [...destColumn.tasks]
+			const sourceCards = [...sourceColumn.cards]
+			const destCards = [...destColumn.cards]
 
-			const [removed] = sourceTasks.splice(source.index, 1)
+			const [removed] = sourceCards.splice(source.index, 1)
 			removed.columnId = destColumn.id
-			destTasks.splice(destination.index, 0, removed)
+			destCards.splice(destination.index, 0, removed)
 
-			sourceColumn.tasks = sourceTasks
-			destColumn.tasks = destTasks
+			sourceColumn.cards = sourceCards
+			destColumn.cards = destCards
 
 			columnRepository.updateColumn(sourceColumn, true)
 			columnRepository.updateColumn(destColumn, true)
 		} else {
 			// Dropping into the same column
-			const column = dragAndDropTaskColumns[source.droppableId]
-			const copiedTasks = [...column.tasks]
+			const column = dragAndDropCardColumns[source.droppableId]
+			const copiedCards = [...column.cards]
 
-			const [removed] = copiedTasks.splice(source.index, 1)
-			copiedTasks.splice(destination.index, 0, removed)
+			const [removed] = copiedCards.splice(source.index, 1)
+			copiedCards.splice(destination.index, 0, removed)
 
-			column.tasks = copiedTasks
+			column.cards = copiedCards
 
 			columnRepository.updateColumn(column, true)
 		}
@@ -106,12 +106,14 @@ const BoardView = () => {
 		<Container fluid className="d-flex flex-column bg-dark text-white py-2" style={{ height: "100%" }}>
 			{error && (
 				<FullScreenErrorDisplay error={error}>
-					<Button variant="primary" onClick={() => navigate("/")}>
-						Go to Dashboard
-					</Button>
-					<Button className="ms-2" variant="secondary" onClick={() => navigate(0)}>
-						Reload
-					</Button>
+					<div className="d-flex">
+						<Button variant="primary" onClick={() => navigate("/")}>
+							Go to Dashboard
+						</Button>
+						<Button className="ms-2" variant="secondary" onClick={() => navigate(0)}>
+							Reload
+						</Button>
+					</div>
 				</FullScreenErrorDisplay>
 			)}
 			{!error && (
@@ -157,8 +159,8 @@ const BoardView = () => {
 						</Col>
 					</Row>
 					<DragDropContext onDragEnd={handleDragEnd}>
-						<div className="d-flex flex-row flex-grow-1 overflow-scroll task-columns-container">
-							{Object.entries(dragAndDropTaskColumns).map(([colId, col], colIndex) => (
+						<div className="d-flex flex-row flex-grow-1 overflow-scroll card-columns-container">
+							{Object.entries(dragAndDropCardColumns).map(([colId, col], colIndex) => (
 								<div
 									key={colId}
 									className={`d-flex flex-column flex-grow-1
@@ -188,7 +190,7 @@ const BoardView = () => {
 											<button
 												className="btn btn-primary"
 												onClick={() => {
-													NiceModal.show("edit-task-modal", { columnId: parseInt(colId) })
+													NiceModal.show("edit-card-modal", { columnId: parseInt(colId) })
 												}}>
 												<i className="bi bi-plus-lg" />
 											</button>
@@ -207,30 +209,30 @@ const BoardView = () => {
 													height: "fit-content",
 													boxSizing: "border-box",
 												}}>
-												{col.tasks.map((curTask, taskIndex) => (
+												{col.cards.map((curCard, cardIndex) => (
 													<Draggable
-														key={curTask.id}
-														draggableId={curTask.id.toString()}
-														index={taskIndex}>
+														key={curCard.id}
+														draggableId={curCard.id.toString()}
+														index={cardIndex}>
 														{(provided, snapshot) => (
 															<div
 																ref={provided.innerRef}
 																{...provided.draggableProps}
 																{...provided.dragHandleProps}
-																className={`task-card my-2 border p-2 bg-dark rounded ${
+																className={`card-card my-2 border p-2 bg-dark rounded ${
 																	snapshot.isDragging
 																		? "border-primary"
 																		: "border-secondary shadow-sm"
 																}`}
 																style={{ ...provided.draggableProps.style }}>
 																<div className="d-flex align-items-top justify-content-between">
-																	<h3>{curTask.name}</h3>
+																	<h3>{curCard.name}</h3>
 																	<div className="d-flex align-items-center">
 																		<button
 																			className="icon-btn text-white bi bi-pencil-fill fs-6"
 																			onClick={() => {
-																				NiceModal.show("edit-task-modal", {
-																					task: curTask,
+																				NiceModal.show("edit-card-modal", {
+																					card: curCard,
 																					columnId: parseInt(colId),
 																				})
 																			}}
@@ -238,7 +240,7 @@ const BoardView = () => {
 																		<button
 																			className="icon-btn text-white bi bi-trash-fill"
 																			onClick={() =>
-																				taskRepository.deleteTask(curTask.id)
+																				cardRepository.deleteCard(curCard.id)
 																			}
 																		/>
 																		<ContextButton
@@ -249,9 +251,9 @@ const BoardView = () => {
 																		/>
 																	</div>
 																</div>
-																<p>{curTask.description}</p>
+																<p>{curCard.description}</p>
 																<div className="d-flex flex-wrap gap-2">
-																	{curTask.tags.map((tag) => (
+																	{curCard.tags.map((tag) => (
 																		<span key={tag} className="badge bg-secondary">
 																			{tag}
 																		</span>

@@ -13,7 +13,10 @@ import EditBoard from "./layouts/EditBoard"
 import NotFound from "./layouts/NotFound"
 import BoardRepository from "./persistence/BoardRepository"
 import { ColumnRepository } from "./persistence/ColumnRepository"
-import { TaskRepository } from "./persistence/TaskRepository"
+import { CardRepository } from "./persistence/CardRepository"
+import FullScreenErrorDisplay from "./components/misc/FullScreenErrorDisplay"
+import { Button } from "react-bootstrap"
+import SplashScreen from "./components/misc/SplashScreen"
 
 const boardHubConnection = new HubConnectionBuilder()
 	.withUrl(process.env.REACT_APP_SIGNALR_SERVER_URL + "/boardHub", {
@@ -26,37 +29,71 @@ const axiosInstance = axios.create({ baseURL: process.env.REACT_APP_REST_API_SER
 
 const boardRepository = new BoardRepository(boardHubConnection, axiosInstance)
 const columnRepository = new ColumnRepository(boardHubConnection)
-const taskRepository = new TaskRepository(boardHubConnection)
+const cardRepository = new CardRepository(boardHubConnection)
+
+enum AppState {
+	Loading,
+	Loaded,
+	Error,
+}
 
 const App = () => {
 	const screenSize = useScreenSize()
 	const [sidebarVisible, setSidebarVisible] = useState(false)
 
+	const [error, setError] = useState<string>("")
+	const [appState, setAppState] = useState<AppState>(AppState.Loading)
+
 	useEffect(() => {
-		boardHubConnection.start().catch((err) => console.error(err.toString()))
-		boardRepository.init()
+		boardHubConnection
+			.start()
+			.then(() => {
+				console.log("Connected to SignalR server")
+				boardRepository.init()
+				boardHubConnection.onclose(() => {
+					setError("Connection to server lost. Please refresh the page to reconnect.")
+					setAppState(AppState.Error)
+				})
+				setAppState(AppState.Loaded)
+			})
+			.catch((err) => {
+				setError(err.message)
+				setAppState(AppState.Error)
+			})
 	}, [])
 
 	return (
-		<ScreenSizeContext.Provider value={screenSize}>
-			<NiceModal.Provider>
-				<BrowserRouter>
-					<div className="d-flex flex-column overflow-hidden" style={{ height: "100vh" }}>
-						<Sidebar visible={sidebarVisible} onHide={() => setSidebarVisible(false)} />
-						<NavBar onSidebarToggle={() => setSidebarVisible(!sidebarVisible)} />
-						<Routes>
-							<Route path="/" element={<Dashboard />} />
-							<Route path="/boards/:boardId" element={<BoardView />} />
-							<Route path="/boards/:boardId/edit" element={<EditBoard />} />
-							<Route path="/boards/add" element={<EditBoard />} />
-							<Route path="*" element={<NotFound />} />
-						</Routes>
-					</div>
-				</BrowserRouter>
-			</NiceModal.Provider>
-		</ScreenSizeContext.Provider>
+		<>
+			<div className="d-flex flex-column overflow-hidden" style={{ height: "100vh" }}>
+				{appState == AppState.Loading && <SplashScreen />}
+				{appState == AppState.Error && (
+					<FullScreenErrorDisplay error={error} displayBackButton={false} errorFontSizeClass="h4">
+						<Button variant="primary" onClick={() => window.location.reload()}>
+							Reload
+						</Button>
+					</FullScreenErrorDisplay>
+				)}
+				{appState == AppState.Loaded && (
+					<ScreenSizeContext.Provider value={screenSize}>
+						<NiceModal.Provider>
+							<BrowserRouter>
+								<Sidebar visible={sidebarVisible} onHide={() => setSidebarVisible(false)} />
+								<NavBar onSidebarToggle={() => setSidebarVisible(!sidebarVisible)} />
+								<Routes>
+									<Route path="/" element={<Dashboard />} />
+									<Route path="/boards/:boardId" element={<BoardView />} />
+									<Route path="/boards/:boardId/edit" element={<EditBoard />} />
+									<Route path="/boards/add" element={<EditBoard />} />
+									<Route path="*" element={<NotFound />} />
+								</Routes>
+							</BrowserRouter>
+						</NiceModal.Provider>
+					</ScreenSizeContext.Provider>
+				)}
+			</div>
+		</>
 	)
 }
 
-export { boardRepository, columnRepository, taskRepository }
+export { boardRepository, columnRepository, cardRepository }
 export default App

@@ -1,5 +1,3 @@
-// This modal will be used to edit a task and it needs to be created using the NiceModal component from @ebay/nice-modal-react
-
 import NiceModal, { NiceModalHocProps } from "@ebay/nice-modal-react"
 import { useRef, useState } from "react"
 import { Button, Form, Modal } from "react-bootstrap"
@@ -46,7 +44,7 @@ const EditColumnModal = NiceModal.create<NiceModalHocProps>(() => {
 		// Save or update the column
 		if (isEditingExistingColumn) {
 			const res = await columnRepository.updateColumn(
-				new Column(column.id, fields.name.value, column.tasks, column.boardId)
+				new Column(column.id, fields.name.value, column.cards, column.boardId)
 			)
 			if (!res.success) {
 				setError(res.message)

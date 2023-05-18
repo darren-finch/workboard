@@ -19,9 +19,9 @@ public class MockDbContext
         get => lastColumnId++;
     }
 
-    private long lastTaskId = 1;
-    public long nextTaskId
+    private long lastCardId = 1;
+    public long nextCardId
     {
-        get => lastTaskId++;
+        get => lastCardId++;
     }
 }

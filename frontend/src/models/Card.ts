@@ -1,4 +1,4 @@
-export default class Task {
+export default class Card {
 	id: number
 	name: string
 	description: string
