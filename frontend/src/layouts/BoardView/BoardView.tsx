@@ -1,10 +1,9 @@
 import NiceModal from "@ebay/nice-modal-react"
-import { useContext, useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import { Button, Col, Container, Row } from "react-bootstrap"
 import { useNavigate, useParams } from "react-router-dom"
 import { boardRepository, cardRepository, columnRepository } from "../../App"
 import FullScreenErrorDisplay from "../../components/misc/FullScreenErrorDisplay"
-import { ScreenSizeContext } from "../../context/ScreenSizeContext"
 import Board from "../../models/Board"
 import Card from "../../models/Card"
 import Column from "../../models/Column"
@@ -16,8 +15,6 @@ export interface DragAndDropCardColumns {
 
 const BoardView = () => {
 	const navigate = useNavigate()
-
-	const screenSize = useContext(ScreenSizeContext)
 
 	const { boardId } = useParams()
 	const [board, setBoard] = useState<Board>(new Board(0, "", []))
@@ -129,7 +126,7 @@ const BoardView = () => {
 	}
 
 	return (
-		<Container fluid className="d-flex flex-column bg-dark text-white py-2" style={{ height: "100%" }}>
+		<Container fluid className="d-flex flex-column bg-dark text-white py-2" style={{ height: "calc(100% - 57px)" }}>
 			{error && (
 				<FullScreenErrorDisplay error={error}>
 					<div className="d-flex">
