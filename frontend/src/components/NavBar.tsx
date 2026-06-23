@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { Button, Dropdown, Navbar } from "react-bootstrap"
+import { Button, Container, Dropdown, Navbar } from "react-bootstrap"
 import { useNavigate } from "react-router-dom"
 import Board from "../models/Board"
 import { boardRepository } from "../App"
@@ -24,7 +24,8 @@ const GlobalNavbar: React.FC<NavBarProps> = ({ onSidebarToggle }) => {
 			bg="dark"
 			expand="lg"
 			variant="dark"
-			className="p-2 align-items-center justify-content-between border-bottom border-secondary">
+			className="p-2 border-bottom border-secondary">
+			<Container className="align-items-center justify-content-between">
 			<Navbar.Brand onClick={() => navigate("/")}>WorkBoard</Navbar.Brand>
 
 			<div className="d-none d-md-flex align-items-center gap-2">
@@ -57,6 +58,7 @@ const GlobalNavbar: React.FC<NavBarProps> = ({ onSidebarToggle }) => {
 					<span className="d-none d-sm-inline fs-6">Menu</span>
 				</button>
 			</div>
+			</Container>
 		</Navbar>
 	)
 }

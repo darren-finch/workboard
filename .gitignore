@@ -1,3 +1,7 @@
 # CUSTOM IGNORES
 .DS_Store
 .vscode/
+*.docx
+*.env*
+**/.env*
+**/appsettings.Production.json

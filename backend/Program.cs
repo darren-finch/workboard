@@ -23,8 +23,13 @@ builder.Services.AddSignalR(options =>
 
 var app = builder.Build();
 
+var allowedOriginsEnv = Environment.GetEnvironmentVariable("ALLOWED_ORIGINS");
+var allowedOrigins = allowedOriginsEnv is not null
+    ? allowedOriginsEnv.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+    : app.Configuration.GetSection("AllowedOrigins").Get<string[]>() ?? Array.Empty<string>();
+
 app.UseCors(builder => builder
-    .WithOrigins("http://localhost:3000")
+    .WithOrigins(allowedOrigins)
     .AllowAnyMethod()
     .AllowAnyHeader()
     .AllowCredentials());

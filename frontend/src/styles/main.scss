@@ -1,10 +1,21 @@
 @import "_overrides.scss";
 
+.container,
+.container-fluid,
+.container-sm,
+.container-md,
+.container-lg,
+.container-xl,
+.container-xxl {
+	max-width: 1400px;
+}
+
 html,
 body,
 #root {
 	height: 100vh;
 	overflow: hidden;
+	background-color: $dark !important;
 }
 
 input {
